@@ -18,10 +18,6 @@ const buildHref = (path: string) => {
 	return `${base}${normalized}`.replace(/\/{2,}/g, '/');
 };
 
-const themeLabels = dictionary.themeToggle ?? {
-	light: 'Light mode',
-	dark: 'Dark mode',
-};
 const localeMeta = dictionary.navigation.locales;
 const otherLocale = locale === 'en' ? 'es' : 'en';
 const languageHref = alternateHref ?? (otherLocale === 'es' ? '/es' : '/');
@@ -69,6 +65,32 @@ const themeScript = `
     window.__toggleTheme = toggleTheme;
   })();
 `;
+
+type SocialLink = {
+	name: string;
+	href: string;
+	title: string;
+	icon: 'github' | 'mail';
+};
+
+const socialLinks: SocialLink[] = [
+	{
+		name: 'GitHub',
+		href: 'https://github.com/turtlean',
+		title: 'Turtleand on GitHub',
+		icon: 'github',
+	},
+	{
+		name: 'Email',
+		href: 'mailto:hello@turtleand.com',
+		title: 'Email Turtleand',
+		icon: 'mail',
+	},
+];
+
+const shouldOpenInNewTab = (href: string) => href.startsWith('http');
+const footerRights = dictionary.footer?.rights ?? 'All rights reserved.';
+const currentYear = new Date().getFullYear();
 ---
 
 <!DOCTYPE html>
@@ -116,7 +138,6 @@ const themeScript = `
 									<path d="M21 13.05A9.05 9.05 0 0 1 10.95 3a7.2 7.2 0 1 0 9.9 9.9Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
 								</svg>
 							</span>
-							<span class="pill-label">{dictionary.navigation.theme.label}</span>
 						</button>
 						<a class="pill subtle" href={languageHref} aria-label={localeMeta[otherLocale].aria}>
 							<span class="icon">🌐</span>
@@ -130,22 +151,59 @@ const themeScript = `
 			<slot />
 		</main>
 		<footer class="site-footer">
-			<div class="shell footer-grid">
-				<div>
-					<p class="footer-title">Build</p>
-					<p class="footer-copy">{dictionary.site.description}</p>
+			<div class="footer-divider" aria-hidden="true"></div>
+			<div class="shell footer-inner">
+				<ul class="footer-socials" aria-label="Turtleand social links">
+					{socialLinks.map((link) => {
+						const external = shouldOpenInNewTab(link.href);
+						return (
+							<li>
+								<a
+									class={`footer-social-link${link.icon === 'mail' ? ' is-mail' : ''}`}
+									href={link.href}
+									title={link.title}
+									aria-label={link.title}
+									target={external ? '_blank' : undefined}
+									rel={external ? 'noopener noreferrer' : undefined}
+								>
+									<span class="sr-only">{link.name}</span>
+									{link.icon === 'github' ? (
+										<svg viewBox="0 0 24 24" aria-hidden="true" role="img">
+											<path
+												fill="currentColor"
+												d="M12 .5C5.65.5.5 5.65.5 12.02c0 5.11 3.32 9.44 7.93 10.97.58.11.8-.25.8-.57 0-.28-.01-1.02-.02-2-3.22.7-3.9-1.55-3.9-1.55-.53-1.34-1.3-1.7-1.3-1.7-1.06-.73.08-.72.08-.72 1.17.08 1.79 1.2 1.79 1.2 1.04 1.78 2.73 1.26 3.4.96.11-.75.41-1.26.74-1.55-2.57-.29-5.28-1.29-5.28-5.75 0-1.27.45-2.31 1.19-3.13-.12-.29-.52-1.46.11-3.05 0 0 .98-.31 3.21 1.19a11.16 11.16 0 0 1 5.84 0c2.23-1.5 3.2-1.19 3.2-1.19.63 1.59.24 2.76.12 3.05.74.82 1.19 1.86 1.19 3.13 0 4.47-2.72 5.46-5.31 5.75.42.36.79 1.08.79 2.18 0 1.58-.02 2.85-.02 3.24 0 .31.21.68.81.57 4.6-1.53 7.92-5.86 7.92-10.97C23.53 5.65 18.38.5 12 .5z"
+											></path>
+										</svg>
+									) : (
+										<svg viewBox="0 0 24 24" aria-hidden="true" role="img">
+											<path
+												fill="none"
+												stroke="currentColor"
+												stroke-width="1.8"
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												d="M3.25 6.5A2.75 2.75 0 0 1 6 3.75h12a2.75 2.75 0 0 1 2.75 2.75v10.5A2.75 2.75 0 0 1 18 19.75H6A2.75 2.75 0 0 1 3.25 17V6.5Z"
+											></path>
+											<path
+												fill="none"
+												stroke="currentColor"
+												stroke-width="1.8"
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												d="m4 7.5 7.42 5.07a1.5 1.5 0 0 0 1.66 0L20.5 7.5"
+											></path>
+										</svg>
+									)}
+								</a>
+							</li>
+						);
+					})}
+				</ul>
+				<div class="footer-meta">
+					<span class="footer-meta-year">Copyright © {currentYear}</span>
+					<span class="footer-meta-separator" aria-hidden="true">|</span>
+					<span class="footer-meta-rights">{footerRights}</span>
 				</div>
-				<div class="footer-links">
-					<a href={buildHref('/')}>{dictionary.navigation.home}</a>
-					<a href={buildHref('/tags')}>{dictionary.navigation.tags}</a>
-					<a href="https://turtleand.com">{dictionary.buttons.viewPortal}</a>
-					{alternateLabel && languageHref && <a href={languageHref}>{alternateLabel}</a>}
-				</div>
-			</div>
-			<div class="shell footer-meta">
-				<span>&copy; {new Date().getFullYear()} Turtleand</span>
-				<span class="divider">•</span>
-				<span>{dictionary.navigation.theme.label}: {themeLabels.light}/{themeLabels.dark}</span>
 			</div>
 		</footer>
 	</body>
@@ -172,6 +230,18 @@ const themeScript = `
 	--accent-2: #6fe1c3;
 	--border: #e5e7eb;
 	--border-strong: #d1d5db;
+	--footer-bg-1: #f6f7fb;
+	--footer-bg-2: #eef2fb;
+	--footer-bg-3: #e3e8f3;
+	--footer-text: #0f172a;
+	--footer-muted: #4b5563;
+	--footer-pill-bg: rgba(255, 255, 255, 0.9);
+	--footer-pill-border: rgba(17, 24, 39, 0.15);
+	--footer-pill-bg-hover: #eef2fb;
+	--footer-pill-text: #0f172a;
+	--footer-mail-border: rgba(31, 111, 235, 0.35);
+	--footer-mail-bg: rgba(111, 225, 195, 0.18);
+	--footer-mail-bg-hover: rgba(111, 225, 195, 0.3);
 }
 
 [data-theme='dark'] {
@@ -184,6 +254,18 @@ const themeScript = `
 	--accent-2: #2e8373;
 	--border: #11283a;
 	--border-strong: #1d3b4f;
+	--footer-bg-1: #081526;
+	--footer-bg-2: #040c16;
+	--footer-bg-3: #010409;
+	--footer-text: rgba(247, 250, 255, 0.9);
+	--footer-muted: rgba(247, 250, 255, 0.65);
+	--footer-pill-bg: rgba(255, 255, 255, 0.1);
+	--footer-pill-border: rgba(255, 255, 255, 0.35);
+	--footer-pill-bg-hover: rgba(255, 255, 255, 0.2);
+	--footer-pill-text: rgba(255, 255, 255, 0.9);
+	--footer-mail-border: rgba(103, 232, 249, 0.55);
+	--footer-mail-bg: rgba(8, 145, 178, 0.25);
+	--footer-mail-bg-hover: rgba(8, 145, 178, 0.4);
 }
 
 *,
@@ -330,7 +412,11 @@ a:focus-visible {
 	);
 	border-color: color-mix(in srgb, var(--border) 70%, var(--accent) 30%);
 	box-shadow: var(--shadow-card);
-	gap: 0.55rem;
+	gap: 0;
+	padding: 0.65rem;
+	min-width: 48px;
+	min-height: 48px;
+	justify-content: center;
 }
 
 .pill.theme-toggle[data-theme-state='dark'] {
@@ -339,8 +425,8 @@ a:focus-visible {
 
 .pill.theme-toggle .theme-icon {
 	position: relative;
-	width: 28px;
-	height: 28px;
+	width: 32px;
+	height: 32px;
 	border-radius: 50%;
 	display: grid;
 	place-items: center;
@@ -356,8 +442,8 @@ a:focus-visible {
 }
 
 .pill.theme-toggle .theme-icon svg {
-	width: 17px;
-	height: 17px;
+	width: 20px;
+	height: 20px;
 	position: absolute;
 	transition: opacity 0.25s ease, transform 0.25s ease;
 }
@@ -412,50 +498,155 @@ main.shell {
 }
 
 .site-footer {
-	border-top: 1px solid var(--border);
-	background: color-mix(in srgb, var(--surface-card) 94%, transparent);
-	padding: 2rem 0 2.5rem;
-	color: var(--text-muted);
+	margin-top: auto;
+	background: linear-gradient(180deg, var(--footer-bg-1) 0%, var(--footer-bg-2) 55%, var(--footer-bg-3) 100%);
+	color: var(--footer-text);
+	box-shadow: 0 -10px 35px rgba(1, 4, 9, 0.28);
+	padding-bottom: 2rem;
 }
 
-.footer-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+.footer-divider {
+	height: 1px;
+	background: linear-gradient(
+		90deg,
+		color-mix(in srgb, var(--footer-text) 0%, transparent) 0%,
+		color-mix(in srgb, var(--footer-text) 30%, transparent) 40%,
+		color-mix(in srgb, var(--footer-text) 30%, transparent) 60%,
+		color-mix(in srgb, var(--footer-text) 0%, transparent) 100%
+	);
+}
+
+.footer-inner {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 	gap: 1.5rem;
-	align-items: start;
+	padding: 2.5rem 0 1rem;
+	text-align: center;
 }
 
-.footer-title {
-	margin: 0 0 0.5rem;
-	font-weight: 700;
-	color: var(--text-base);
-}
-
-.footer-copy {
+.footer-socials {
+	list-style: none;
+	display: flex;
+	gap: 1rem;
+	padding: 0;
 	margin: 0;
-	max-width: 420px;
+	align-items: center;
+	justify-content: center;
 }
 
-.footer-links {
-	display: grid;
-	gap: 0.4rem;
+.footer-social-link {
+	display: inline-flex;
+	justify-content: center;
+	align-items: center;
+	width: 44px;
+	height: 44px;
+	border-radius: 999px;
+	border: 1px solid var(--footer-pill-border);
+	background: var(--footer-pill-bg);
+	color: var(--footer-pill-text);
+	transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+	box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
 }
 
-.footer-links a {
+.footer-social-link svg {
+	width: 22px;
+	height: 22px;
+}
+
+.footer-social-link.is-mail {
+	padding: 0 1.2rem;
+	width: auto;
+	gap: 0.6rem;
+	height: 44px;
+	border-color: var(--footer-mail-border);
+	background: var(--footer-mail-bg);
+	color: var(--footer-pill-text);
+	font-size: 0.9rem;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.footer-social-link:hover,
+.footer-social-link:focus-visible {
+	background: var(--footer-pill-bg-hover);
 	color: var(--text-base);
+	border-color: color-mix(in srgb, var(--footer-pill-border) 50%, var(--text-base) 50%);
+	transform: translateY(-2px);
+	text-decoration: none;
+}
+
+.footer-social-link.is-mail:hover,
+.footer-social-link.is-mail:focus-visible {
+	background: var(--footer-mail-bg-hover);
 }
 
 .footer-meta {
-	margin-top: 1.5rem;
 	display: flex;
-	gap: 0.5rem;
+	flex-direction: column;
 	align-items: center;
-	font-size: 0.95rem;
-	color: var(--text-muted);
+	gap: 0.35rem;
+	font-size: 0.82rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--footer-muted);
 }
 
-.footer-meta .divider {
-	opacity: 0.6;
+.footer-meta span {
+	display: inline-flex;
+	align-items: center;
+}
+
+.footer-meta-year {
+	color: var(--footer-text);
+	font-weight: 600;
+}
+
+.footer-meta-separator {
+	display: none;
+	padding: 0 0.75rem;
+	color: rgba(247, 250, 255, 0.4);
+}
+
+.footer-meta-rights {
+	color: var(--footer-text);
+	font-weight: 600;
+	letter-spacing: 0.12em;
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+@media (min-width: 640px) {
+	.footer-inner {
+		flex-direction: row-reverse;
+		justify-content: space-between;
+		text-align: left;
+	}
+
+	.footer-socials {
+		justify-content: flex-end;
+	}
+
+	.footer-meta {
+		flex-direction: row;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.footer-meta-separator {
+		display: inline-flex;
+	}
 }
 
 @media (max-width: 800px) {

@@ -61,5 +61,8 @@
   "themeToggle": {
     "light": "Light mode",
     "dark": "Dark mode"
+  },
+  "footer": {
+    "rights": "All rights reserved."
   }
 }
