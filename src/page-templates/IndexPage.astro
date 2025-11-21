@@ -1,0 +1,103 @@
+---
+import { getCollection } from 'astro:content';
+import BlogLayout from '../layouts/BlogLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import { POSTS_PER_PAGE, filterByLocale, filterPublished, sortPosts } from '../utils/blog';
+import type { Locale } from '../utils/i18n';
+import { getDictionary, otherLocale } from '../utils/i18n';
+
+interface Props {
+	locale: Locale;
+	basePath?: string;
+}
+
+const { locale, basePath = '' } = Astro.props as Props;
+const dictionary = getDictionary(locale);
+const posts = sortPosts((await getCollection('posts')).filter(filterPublished).filter(filterByLocale(locale)));
+const featuredPosts = posts.filter((post) => post.data.featured);
+const paginatedPosts = posts.slice(0, POSTS_PER_PAGE);
+const totalPages = Math.max(1, Math.ceil(posts.length / POSTS_PER_PAGE));
+const altLocale = otherLocale(locale);
+const alternateHref = altLocale === 'es' ? '/es' : '/';
+const alternateLabel = dictionary.navigation.locales[altLocale].aria;
+---
+
+<BlogLayout
+	title={dictionary.site.title}
+	description={dictionary.site.description}
+	locale={locale}
+	dictionary={dictionary}
+	basePath={basePath}
+	alternateHref={alternateHref}
+	alternateLabel={alternateLabel}
+>
+	{featuredPosts.length > 0 && (
+		<section id="featured" class="section">
+			<div class="section-header">
+				<h2>{dictionary.sections.featuredTitle}</h2>
+				<p>{dictionary.sections.featuredDescription}</p>
+			</div>
+			<div class="grid">
+				{featuredPosts.map((post) => (
+					<PostCard post={post} locale={locale} basePath={basePath} dictionary={dictionary} />
+				))}
+			</div>
+		</section>
+	)}
+
+	<section class="section">
+		<div class="section-header">
+			<h2>{dictionary.sections.allTitle}</h2>
+			<p>{dictionary.sections.allDescription}</p>
+		</div>
+		<div class="grid">
+			{paginatedPosts.map((post) => (
+				<PostCard post={post} locale={locale} basePath={basePath} dictionary={dictionary} />
+			))}
+		</div>
+
+		{totalPages > 1 && (
+			<nav class="pagination" aria-label="Pagination">
+				<span class="pagination-label">{dictionary.pagination.label} 1 / {totalPages}</span>
+				<a class="pill subtle" href={`${basePath}/page/2`}>{dictionary.pagination.next}</a>
+			</nav>
+		)}
+	</section>
+</BlogLayout>
+
+<style>
+.section {
+	margin-top: 1.5rem;
+}
+
+.section-header h2 {
+	margin: 0;
+	font-family: var(--font-heading);
+	font-size: 1.6rem;
+}
+
+.section-header p {
+	margin: 0.3rem 0 0;
+	color: var(--text-muted);
+}
+
+.grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	grid-auto-rows: 1fr;
+	gap: 1.4rem;
+	margin-top: 1.35rem;
+	align-items: stretch;
+}
+
+.pagination {
+	margin-top: 2.25rem;
+	display: flex;
+	gap: 0.75rem;
+	align-items: center;
+}
+
+.pagination-label {
+	color: var(--text-muted);
+}
+</style>

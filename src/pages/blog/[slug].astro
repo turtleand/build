@@ -1,0 +1,28 @@
+---
+import { getCollection } from 'astro:content';
+import type { PostEntry } from '../../utils/blog';
+import { filterByLocale, filterPublished, findTranslationForLocale, getPostSlug, sortPosts } from '../../utils/blog';
+import PostPage from '../../page-templates/PostPage.astro';
+import type { Locale } from '../../utils/i18n';
+
+const pageLocale: Locale = 'en';
+
+export async function getStaticPaths() {
+	const locale: Locale = 'en';
+	const allPosts = (await getCollection('posts')).filter(filterPublished);
+	const posts = sortPosts(allPosts.filter(filterByLocale(locale)));
+
+	return posts.map((post) => {
+		const translated = findTranslationForLocale(allPosts, post.data.translationKey, 'es');
+		return {
+			params: { slug: getPostSlug(post) },
+			props: { post, translatedSlug: translated ? getPostSlug(translated) : null },
+		};
+	});
+}
+
+const { post, translatedSlug } = Astro.props as { post: PostEntry; translatedSlug: string | null };
+const alternateHref = translatedSlug ? `/es/blog/${translatedSlug}` : '/es';
+---
+
+<PostPage post={post} locale={pageLocale} basePath="" alternateHref={alternateHref} />

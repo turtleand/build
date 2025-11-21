@@ -1,0 +1,65 @@
+{
+  "site": {
+    "title": "Build — Turtleand",
+    "description": "A calm, editorial blog for Turtleand builders with bilingual content and light/dark themes."
+  },
+  "navigation": {
+    "home": "Home",
+    "tags": "Tags",
+    "portal": "Portal",
+    "language": "Language",
+    "locales": {
+      "en": {
+        "label": "EN",
+        "aria": "Switch to English"
+      },
+      "es": {
+        "label": "ES",
+        "aria": "Cambiar a español"
+      }
+    },
+    "theme": {
+      "label": "Theme",
+      "light": "Light",
+      "dark": "Dark"
+    }
+  },
+  "hero": {
+    "title": "Where builders and ideas ship together",
+    "subtitle": "Release notes, patterns, and thinking from the Turtleand build track.",
+    "primaryCta": "Read featured posts",
+    "secondaryCta": "Browse all tags"
+  },
+  "sections": {
+    "featuredTitle": "Featured",
+    "featuredDescription": "Highlighted updates selected by the team.",
+    "allTitle": "All posts",
+    "allDescription": "Newest to oldest across the build track."
+  },
+  "pagination": {
+    "label": "Page",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "tagsPage": {
+    "title": "Tags",
+    "description": "Jump to a topic to filter the archive.",
+    "empty": "No tags available yet.",
+    "countLabel": "posts",
+    "backLabel": "All tags"
+  },
+  "postPage": {
+    "backLabel": "Back to blog",
+    "publishedOn": "Published",
+    "tagsLabel": "Tags",
+    "translatedLabel": "View this post in"
+  },
+  "buttons": {
+    "viewPortal": "Visit Portal",
+    "readMore": "Read article"
+  },
+  "themeToggle": {
+    "light": "Light mode",
+    "dark": "Dark mode"
+  }
+}

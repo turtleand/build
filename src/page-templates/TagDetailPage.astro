@@ -1,0 +1,80 @@
+---
+import BlogLayout from '../layouts/BlogLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import type { TagSummary } from '../utils/blog';
+import type { Locale } from '../utils/i18n';
+import { getDictionary, otherLocale } from '../utils/i18n';
+
+interface Props {
+	locale: Locale;
+	basePath?: string;
+	summary: TagSummary;
+}
+
+const { locale, basePath = '', summary } = Astro.props as Props;
+const dictionary = getDictionary(locale);
+const altLocale = otherLocale(locale);
+const alternateHref = altLocale === 'es' ? '/es/tags' : '/tags';
+const alternateLabel = dictionary.navigation.locales[altLocale].aria;
+---
+
+<BlogLayout
+	title={`${dictionary.tagsPage.title}: ${summary.label} | ${dictionary.site.title}`}
+	description={`${dictionary.tagsPage.title}: ${summary.label}`}
+	locale={locale}
+	dictionary={dictionary}
+	basePath={basePath}
+	alternateHref={alternateHref}
+	alternateLabel={alternateLabel}
+>
+	<section class="section">
+		<p class="back-link"><a href={`${basePath}/tags`}>← {dictionary.tagsPage.backLabel}</a></p>
+		<h1>{summary.label}</h1>
+		<p class="lede">{summary.count} {dictionary.tagsPage.countLabel}</p>
+		<div class="grid">
+			{summary.posts.map((post) => (
+				<PostCard post={post} locale={locale} basePath={basePath} dictionary={dictionary} />
+			))}
+		</div>
+	</section>
+</BlogLayout>
+
+<style>
+.section {
+	margin-top: 1rem;
+}
+
+.back-link {
+	margin: 0 0 0.75rem;
+}
+
+.back-link a {
+	color: var(--text-muted);
+	text-decoration: none;
+}
+
+.back-link a:hover,
+.back-link a:focus-visible {
+	color: var(--text-base);
+	text-decoration: underline;
+}
+
+h1 {
+	margin: 0;
+	font-family: var(--font-heading);
+}
+
+.lede {
+	margin: 0.25rem 0 1rem;
+	color: var(--text-muted);
+}
+
+.grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	grid-auto-rows: 1fr;
+	gap: 1.4rem;
+	margin-top: 1.35rem;
+	align-items: stretch;
+}
+</style>

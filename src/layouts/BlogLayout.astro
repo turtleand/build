@@ -1,0 +1,477 @@
+---
+import type { Dictionary, Locale } from '../utils/i18n';
+
+interface Props {
+	title: string;
+	description?: string;
+	locale: Locale;
+	dictionary: Dictionary;
+	basePath?: string;
+	alternateHref?: string;
+	alternateLabel?: string;
+}
+
+const { title, description, locale, dictionary, basePath = '', alternateHref, alternateLabel } = Astro.props as Props;
+const base = basePath === '/' ? '' : basePath;
+const buildHref = (path: string) => {
+	const normalized = path.startsWith('/') ? path : `/${path}`;
+	return `${base}${normalized}`.replace(/\/{2,}/g, '/');
+};
+
+const themeLabels = dictionary.themeToggle ?? {
+	light: 'Light mode',
+	dark: 'Dark mode',
+};
+const localeMeta = dictionary.navigation.locales;
+const otherLocale = locale === 'en' ? 'es' : 'en';
+const languageHref = alternateHref ?? (otherLocale === 'es' ? '/es' : '/');
+const themeScript = `
+  (() => {
+    const STORAGE_KEY = 'build-theme';
+    const root = document.documentElement;
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const getStored = () => {
+      try { return localStorage.getItem(STORAGE_KEY); } catch (_) { return null; }
+    };
+
+    const resolveTheme = () => getStored() || (media.matches ? 'dark' : 'light');
+
+    const applyTheme = (theme) => {
+      root.dataset.theme = theme;
+      try { localStorage.setItem(STORAGE_KEY, theme); } catch (_) {}
+      const toggle = document.querySelector('[data-theme-toggle]');
+      if (toggle) {
+        toggle.setAttribute('data-theme-state', theme);
+        toggle.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+      }
+    };
+
+    const toggleTheme = () => {
+      const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+    };
+
+    const init = () => {
+      applyTheme(resolveTheme());
+      const toggle = document.querySelector('[data-theme-toggle]');
+      if (toggle && !toggle.dataset.bound) {
+        toggle.dataset.bound = 'true';
+        toggle.addEventListener('click', toggleTheme);
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+    media.addEventListener('change', () => {
+      if (!getStored()) applyTheme(resolveTheme());
+    });
+
+    window.__toggleTheme = toggleTheme;
+  })();
+`;
+---
+
+<!DOCTYPE html>
+<html lang={locale} data-theme="light">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{title}</title>
+		{description && <meta name="description" content={description} />}
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500;700&display=swap"
+			rel="stylesheet"
+		/>
+		<script is:inline set:html={themeScript}></script>
+		<slot name="head" />
+	</head>
+	<body class="site-shell">
+		<header class="site-header">
+			<div class="shell">
+				<a class="brand" href={buildHref('/')}>
+					<span class="brand-mark">
+						<img src="/logo.svg" alt="Turtleand logo" loading="lazy" />
+					</span>
+					<span class="brand-badge">Turtleand</span>
+				</a>
+				<div class="nav-row">
+					<nav aria-label={dictionary.navigation.language}>
+						<ul class="nav-list">
+							<li><a href={buildHref('/')}>{dictionary.navigation.home}</a></li>
+							<li><a href={buildHref('/tags')}>{dictionary.navigation.tags}</a></li>
+							<li><a href="https://turtleand.com">{dictionary.buttons.viewPortal}</a></li>
+						</ul>
+					</nav>
+					<div class="header-actions">
+						<button class="pill theme-toggle" type="button" data-theme-toggle aria-pressed="false" title={dictionary.navigation.theme.label} aria-label={dictionary.navigation.theme.label}>
+							<span class="icon theme-icon" aria-hidden="true">
+								<svg class="sun-icon" viewBox="0 0 24 24" fill="none" role="presentation">
+									<circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.5" />
+									<path d="M12 2.5v2.25M12 19.25V22M4.75 12H2.5M21.5 12h-2.25M6.219 6.219 4.625 4.625m14.75 14.75-1.594-1.594M6.219 17.781 4.625 19.375m14.75-14.75-1.594 1.594" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+								</svg>
+								<svg class="moon-icon" viewBox="0 0 24 24" fill="none" role="presentation">
+									<path d="M21 13.05A9.05 9.05 0 0 1 10.95 3a7.2 7.2 0 1 0 9.9 9.9Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+								</svg>
+							</span>
+							<span class="pill-label">{dictionary.navigation.theme.label}</span>
+						</button>
+						<a class="pill subtle" href={languageHref} aria-label={localeMeta[otherLocale].aria}>
+							<span class="icon">🌐</span>
+							<span class="pill-label">{localeMeta[otherLocale].label}</span>
+						</a>
+					</div>
+				</div>
+			</div>
+		</header>
+		<main class="shell">
+			<slot />
+		</main>
+		<footer class="site-footer">
+			<div class="shell footer-grid">
+				<div>
+					<p class="footer-title">Build</p>
+					<p class="footer-copy">{dictionary.site.description}</p>
+				</div>
+				<div class="footer-links">
+					<a href={buildHref('/')}>{dictionary.navigation.home}</a>
+					<a href={buildHref('/tags')}>{dictionary.navigation.tags}</a>
+					<a href="https://turtleand.com">{dictionary.buttons.viewPortal}</a>
+					{alternateLabel && languageHref && <a href={languageHref}>{alternateLabel}</a>}
+				</div>
+			</div>
+			<div class="shell footer-meta">
+				<span>&copy; {new Date().getFullYear()} Turtleand</span>
+				<span class="divider">•</span>
+				<span>{dictionary.navigation.theme.label}: {themeLabels.light}/{themeLabels.dark}</span>
+			</div>
+		</footer>
+	</body>
+</html>
+
+<style is:global>
+:root {
+	--font-heading: 'Playfair Display', Georgia, serif;
+	--font-body: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+	--shadow-soft: 0 20px 60px -45px rgba(17, 24, 39, 0.55);
+	--shadow-card: 0 20px 40px -32px rgba(17, 24, 39, 0.35);
+	--radius-lg: 18px;
+	--radius-pill: 999px;
+}
+
+:root,
+[data-theme='light'] {
+	--page-bg: #f6f7fb;
+	--surface-card: #ffffff;
+	--surface-contrast: #e6e8ef;
+	--text-base: #121622;
+	--text-muted: #4b5563;
+	--accent: #1f6feb;
+	--accent-2: #6fe1c3;
+	--border: #e5e7eb;
+	--border-strong: #d1d5db;
+}
+
+[data-theme='dark'] {
+	--page-bg: #0e1e2b;
+	--surface-card: #0b1823;
+	--surface-contrast: #112439;
+	--text-base: #f4f4f4;
+	--text-muted: #a8b3ba;
+	--accent: #6fe1c3;
+	--accent-2: #2e8373;
+	--border: #11283a;
+	--border-strong: #1d3b4f;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+body.site-shell {
+	margin: 0;
+	min-height: 100vh;
+	background: var(--page-bg);
+	color: var(--text-base);
+	font-family: var(--font-body);
+	line-height: 1.65;
+	transition: background 0.3s ease, color 0.3s ease;
+}
+
+a {
+	color: var(--accent);
+	text-decoration: none;
+}
+
+a:hover,
+a:focus-visible {
+	text-decoration: underline;
+}
+
+.shell {
+	width: min(1100px, 92vw);
+	margin: 0 auto;
+}
+
+.site-header {
+	position: sticky;
+	top: 0;
+	background: color-mix(in srgb, var(--surface-card) 90%, transparent);
+	backdrop-filter: blur(16px);
+	border-bottom: 1px solid var(--border);
+	z-index: 10;
+}
+
+.site-header .shell {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 1rem 0;
+	gap: 1rem;
+}
+
+.brand {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	color: inherit;
+	text-decoration: none;
+}
+
+.brand-mark {
+	width: 42px;
+	height: 42px;
+	border-radius: 12px;
+	background: var(--surface-contrast);
+	display: grid;
+	place-items: center;
+	border: 1px solid var(--border);
+	box-shadow: var(--shadow-soft);
+}
+
+.brand-mark img {
+	width: 28px;
+	height: 28px;
+}
+
+.brand-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.35rem;
+	padding: 0.3rem 0.85rem;
+	border-radius: var(--radius-pill);
+	border: 1px solid var(--border);
+	background: var(--surface-contrast);
+	color: var(--text-base);
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+}
+
+.nav-row {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+}
+
+.nav-list {
+	list-style: none;
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	padding: 0;
+	margin: 0;
+}
+
+.nav-list a {
+	color: var(--text-base);
+	font-weight: 600;
+	padding: 0.4rem 0.75rem;
+	border-radius: 10px;
+}
+
+.nav-list a:hover,
+.nav-list a:focus-visible {
+	background: var(--surface-contrast);
+	text-decoration: none;
+}
+
+.header-actions {
+	display: flex;
+	gap: 0.6rem;
+	align-items: center;
+}
+
+.pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	padding: 0.45rem 0.85rem;
+	border-radius: var(--radius-pill);
+	border: 1px solid var(--border);
+	background: var(--surface-card);
+	color: var(--text-base);
+	box-shadow: var(--shadow-soft);
+	font-weight: 600;
+	cursor: pointer;
+	transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.pill.theme-toggle {
+	background: linear-gradient(
+		135deg,
+		color-mix(in srgb, var(--surface-card) 92%, var(--accent) 8%),
+		color-mix(in srgb, var(--surface-card) 92%, var(--accent-2) 8%)
+	);
+	border-color: color-mix(in srgb, var(--border) 70%, var(--accent) 30%);
+	box-shadow: var(--shadow-card);
+	gap: 0.55rem;
+}
+
+.pill.theme-toggle[data-theme-state='dark'] {
+	border-color: color-mix(in srgb, var(--border-strong) 55%, var(--accent-2) 45%);
+}
+
+.pill.theme-toggle .theme-icon {
+	position: relative;
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	display: grid;
+	place-items: center;
+	color: var(--text-base);
+	background: radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--accent) 15%, transparent), var(--surface-card));
+	overflow: hidden;
+	transition: background 0.3s ease, color 0.3s ease;
+}
+
+.pill.theme-toggle[data-theme-state='dark'] .theme-icon {
+	color: var(--accent);
+	background: radial-gradient(circle at 70% 40%, color-mix(in srgb, var(--accent-2) 30%, transparent), var(--surface-contrast));
+}
+
+.pill.theme-toggle .theme-icon svg {
+	width: 17px;
+	height: 17px;
+	position: absolute;
+	transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.pill.theme-toggle .sun-icon {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+.pill.theme-toggle .moon-icon {
+	opacity: 0;
+	transform: translateY(8px);
+}
+
+.pill.theme-toggle[data-theme-state='dark'] .sun-icon {
+	opacity: 0;
+	transform: translateY(-8px);
+}
+
+.pill.theme-toggle[data-theme-state='dark'] .moon-icon {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+.pill.subtle {
+	box-shadow: none;
+}
+
+.pill:hover,
+.pill:focus-visible {
+	transform: translateY(-1px);
+	border-color: var(--accent);
+	box-shadow: var(--shadow-card);
+	text-decoration: none;
+}
+
+.pill .icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.95rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pill.theme-toggle .theme-icon svg {
+		transition: none;
+	}
+}
+
+main.shell {
+	padding: 2.5rem 0 3.5rem;
+}
+
+.site-footer {
+	border-top: 1px solid var(--border);
+	background: color-mix(in srgb, var(--surface-card) 94%, transparent);
+	padding: 2rem 0 2.5rem;
+	color: var(--text-muted);
+}
+
+.footer-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: 1.5rem;
+	align-items: start;
+}
+
+.footer-title {
+	margin: 0 0 0.5rem;
+	font-weight: 700;
+	color: var(--text-base);
+}
+
+.footer-copy {
+	margin: 0;
+	max-width: 420px;
+}
+
+.footer-links {
+	display: grid;
+	gap: 0.4rem;
+}
+
+.footer-links a {
+	color: var(--text-base);
+}
+
+.footer-meta {
+	margin-top: 1.5rem;
+	display: flex;
+	gap: 0.5rem;
+	align-items: center;
+	font-size: 0.95rem;
+	color: var(--text-muted);
+}
+
+.footer-meta .divider {
+	opacity: 0.6;
+}
+
+@media (max-width: 800px) {
+	.site-header .shell {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.nav-row {
+		width: 100%;
+		justify-content: space-between;
+		flex-wrap: wrap;
+	}
+
+	.nav-list {
+		flex-wrap: wrap;
+	}
+}
+</style>

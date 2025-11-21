@@ -1,0 +1,102 @@
+---
+import BlogLayout from '../layouts/BlogLayout.astro';
+import type { TagSummary } from '../utils/blog';
+import type { Locale } from '../utils/i18n';
+import { getDictionary, otherLocale } from '../utils/i18n';
+
+interface Props {
+	locale: Locale;
+	basePath?: string;
+	tags: TagSummary[];
+}
+
+const { locale, basePath = '', tags } = Astro.props as Props;
+const dictionary = getDictionary(locale);
+const altLocale = otherLocale(locale);
+const alternateHref = altLocale === 'es' ? '/es/tags' : '/tags';
+const alternateLabel = dictionary.navigation.locales[altLocale].aria;
+---
+
+<BlogLayout
+	title={`${dictionary.tagsPage.title} | ${dictionary.site.title}`}
+	description={dictionary.tagsPage.description}
+	locale={locale}
+	dictionary={dictionary}
+	basePath={basePath}
+	alternateHref={alternateHref}
+	alternateLabel={alternateLabel}
+>
+	<section class="section">
+		<h1>{dictionary.tagsPage.title}</h1>
+		<p class="lede">{dictionary.tagsPage.description}</p>
+		{tags.length === 0 ? (
+			<p class="muted">{dictionary.tagsPage.empty}</p>
+		) : (
+			<ul class="tag-list">
+				{tags.map((tag) => (
+					<li>
+						<a href={`${basePath}/tags/${tag.slug}`}>
+							<span>{tag.label}</span>
+							<span class="count">{tag.count} {dictionary.tagsPage.countLabel}</span>
+						</a>
+					</li>
+				))}
+			</ul>
+		)}
+	</section>
+</BlogLayout>
+
+<style>
+.section {
+	margin-top: 1rem;
+}
+
+h1 {
+	margin: 0;
+	font-family: var(--font-heading);
+}
+
+.lede {
+	margin: 0.35rem 0 1rem;
+	color: var(--text-muted);
+}
+
+.muted {
+	color: var(--text-muted);
+}
+
+.tag-list {
+	list-style: none;
+	padding: 0;
+	margin: 1.5rem 0 0;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: 1rem;
+}
+
+.tag-list a {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0.9rem 1rem;
+	background: var(--surface-card);
+	border-radius: 14px;
+	text-decoration: none;
+	color: var(--text-base);
+	border: 1px solid var(--border);
+	box-shadow: var(--shadow-soft);
+	transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tag-list a:hover,
+.tag-list a:focus-visible {
+	transform: translateY(-2px);
+	border-color: var(--accent);
+	box-shadow: var(--shadow-card);
+}
+
+.count {
+	font-weight: 700;
+	color: var(--text-muted);
+}
+</style>

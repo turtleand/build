@@ -1,0 +1,65 @@
+{
+  "site": {
+    "title": "Build — Turtleand",
+    "description": "Un blog editorial y tranquilo para las personas que construyen en Turtleand, con contenido bilingüe y temas claro/oscuro."
+  },
+  "navigation": {
+    "home": "Inicio",
+    "tags": "Etiquetas",
+    "portal": "Portal",
+    "language": "Idioma",
+    "locales": {
+      "en": {
+        "label": "EN",
+        "aria": "Cambiar a inglés"
+      },
+      "es": {
+        "label": "ES",
+        "aria": "Cambiar a español"
+      }
+    },
+    "theme": {
+      "label": "Tema",
+      "light": "Claro",
+      "dark": "Oscuro"
+    }
+  },
+  "hero": {
+    "title": "Donde las ideas y quienes construyen avanzan juntas",
+    "subtitle": "Notas de lanzamiento, patrones y pensamiento del track de build en Turtleand.",
+    "primaryCta": "Leer publicaciones destacadas",
+    "secondaryCta": "Ver todas las etiquetas"
+  },
+  "sections": {
+    "featuredTitle": "Destacadas",
+    "featuredDescription": "Actualizaciones señaladas por el equipo.",
+    "allTitle": "Todas las publicaciones",
+    "allDescription": "De la más reciente a la más antigua en el track de build."
+  },
+  "pagination": {
+    "label": "Página",
+    "previous": "Anterior",
+    "next": "Siguiente"
+  },
+  "tagsPage": {
+    "title": "Etiquetas",
+    "description": "Salta a un tema para filtrar el archivo.",
+    "empty": "Aún no hay etiquetas disponibles.",
+    "countLabel": "publicaciones",
+    "backLabel": "Todas las etiquetas"
+  },
+  "postPage": {
+    "backLabel": "Regresar al blog",
+    "publishedOn": "Publicado",
+    "tagsLabel": "Etiquetas",
+    "translatedLabel": "Ver esta publicación en"
+  },
+  "buttons": {
+    "viewPortal": "Visitar Portal",
+    "readMore": "Leer artículo"
+  },
+  "themeToggle": {
+    "light": "Modo claro",
+    "dark": "Modo oscuro"
+  }
+}

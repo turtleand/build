@@ -1,0 +1,38 @@
+---
+import { getCollection } from 'astro:content';
+import type { PostEntry } from '../../utils/blog';
+import { POSTS_PER_PAGE, filterByLocale, filterPublished, paginatePosts, sortPosts } from '../../utils/blog';
+import PaginatedPage from '../../page-templates/PaginatedPage.astro';
+import type { Locale } from '../../utils/i18n';
+
+const pageLocale: Locale = 'en';
+
+export async function getStaticPaths() {
+	const locale: Locale = 'en';
+	const posts = sortPosts((await getCollection('posts')).filter(filterPublished).filter(filterByLocale(locale)));
+	const pages = paginatePosts(posts, POSTS_PER_PAGE);
+
+	return pages.slice(1).map((pagePosts, index) => ({
+		params: { page: String(index + 2) },
+		props: {
+			pagePosts,
+			currentPage: index + 2,
+			totalPages: pages.length,
+		},
+	}));
+}
+
+const { pagePosts, currentPage, totalPages } = Astro.props as {
+	pagePosts: PostEntry[];
+	currentPage: number;
+	totalPages: number;
+};
+---
+
+<PaginatedPage
+	locale={pageLocale}
+	basePath=""
+	pagePosts={pagePosts}
+	currentPage={currentPage}
+	totalPages={totalPages}
+/>
