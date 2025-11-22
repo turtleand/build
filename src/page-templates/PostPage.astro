@@ -135,6 +135,14 @@ const canonical = Astro.url?.href;
 	overflow-x: auto;
 }
 
+.content :global(img) {
+	max-width: 100%;
+	height: auto;
+	border-radius: 12px;
+	display: block;
+	margin: 1.25rem auto;
+}
+
 .muted {
 	color: var(--text-muted);
 }

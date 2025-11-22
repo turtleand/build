@@ -151,37 +151,8 @@ const currentYear = new Date().getFullYear();
 							aria-label={dictionary.navigation.theme.label}
 						>
 							<span class="icon theme-icon" aria-hidden="true">
-								<svg
-									class="sun-icon"
-									viewBox="0 0 24 24"
-									fill="none"
-									role="presentation"
-								>
-									<circle
-										cx="12"
-										cy="12"
-										r="4.5"
-										stroke="currentColor"
-										stroke-width="1.5"></circle>
-									<path
-										d="M12 2.5v2.25M12 19.25V22M4.75 12H2.5M21.5 12h-2.25M6.219 6.219 4.625 4.625m14.75 14.75-1.594-1.594M6.219 17.781 4.625 19.375m14.75-14.75-1.594 1.594"
-										stroke="currentColor"
-										stroke-width="1.5"
-										stroke-linecap="round"></path>
-								</svg>
-								<svg
-									class="moon-icon"
-									viewBox="0 0 24 24"
-									fill="none"
-									role="presentation"
-								>
-									<path
-										d="M21 13.05A9.05 9.05 0 0 1 10.95 3a7.2 7.2 0 1 0 9.9 9.9Z"
-										stroke="currentColor"
-										stroke-width="1.5"
-										stroke-linecap="round"
-										stroke-linejoin="round"></path>
-								</svg>
+								<span class="glyph sun-glyph" aria-hidden="true">☀</span>
+								<span class="glyph moon-glyph" aria-hidden="true">☾</span>
 							</span>
 						</button>
 						<a
@@ -463,84 +434,88 @@ const currentYear = new Date().getFullYear();
 			border-color 0.2s ease;
 	}
 
-	.pill.theme-toggle {
-		background: linear-gradient(
-			135deg,
-			color-mix(in srgb, var(--surface-card) 92%, var(--accent) 8%),
-			color-mix(in srgb, var(--surface-card) 92%, var(--accent-2) 8%)
-		);
-		border-color: color-mix(in srgb, var(--border) 70%, var(--accent) 30%);
-		box-shadow: var(--shadow-card);
-		gap: 0;
-		padding: 0.65rem;
-		min-width: 48px;
-		min-height: 48px;
-		justify-content: center;
-	}
+		.pill.theme-toggle {
+			background: transparent;
+			border: none;
+			box-shadow: none;
+			gap: 0;
+			padding: 0.35rem;
+			min-width: 42px;
+			min-height: 42px;
+			justify-content: center;
+			transition:
+				transform 0.2s ease,
+				color 0.2s ease;
+		}
 
-	.pill.theme-toggle[data-theme-state="dark"] {
-		border-color: color-mix(
-			in srgb,
-			var(--border-strong) 55%,
-			var(--accent-2) 45%
-		);
-	}
+		.pill.theme-toggle:focus-visible {
+			outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+			outline-offset: 4px;
+		}
 
-	.pill.theme-toggle .theme-icon {
-		position: relative;
-		width: 32px;
-		height: 32px;
-		border-radius: 50%;
-		display: grid;
-		place-items: center;
-		color: var(--text-base);
-		background: radial-gradient(
-			circle at 30% 30%,
-			color-mix(in srgb, var(--accent) 15%, transparent),
-			var(--surface-card)
-		);
-		overflow: hidden;
-		transition:
-			background 0.3s ease,
-			color 0.3s ease;
-	}
+		.pill.theme-toggle:hover {
+			transform: translateY(-1px);
+		}
 
-	.pill.theme-toggle[data-theme-state="dark"] .theme-icon {
-		color: var(--accent);
-		background: radial-gradient(
-			circle at 70% 40%,
-			color-mix(in srgb, var(--accent-2) 30%, transparent),
-			var(--surface-contrast)
-		);
-	}
+		.pill.theme-toggle .theme-icon {
+			position: relative;
+			width: 42px;
+			height: 42px;
+			display: grid;
+			place-items: center;
+			color: var(--text-base);
+			font-weight: 800;
+			font-size: 1.6rem;
+			letter-spacing: -0.08em;
+			overflow: hidden;
+		}
 
-	.pill.theme-toggle .theme-icon svg {
-		width: 20px;
-		height: 20px;
-		position: absolute;
-		transition:
-			opacity 0.25s ease,
-			transform 0.25s ease;
-	}
+		.pill.theme-toggle .glyph {
+			position: absolute;
+			opacity: 0;
+			transform: translateY(10px) scale(0.9);
+			transition:
+				opacity 0.2s ease,
+				transform 0.2s ease;
+		}
 
-	.pill.theme-toggle .sun-icon {
-		opacity: 1;
-		transform: translateY(0);
-	}
+		.pill.theme-toggle .sun-glyph {
+			opacity: 0;
+			transform: translateY(10px) scale(0.9);
+			color: transparent;
+			-webkit-text-stroke: 2px color-mix(in srgb, var(--accent) 80%, white 20%);
+			text-shadow: none;
+		}
 
-	.pill.theme-toggle .moon-icon {
-		opacity: 0;
-		transform: translateY(8px);
-	}
+		.pill.theme-toggle[data-theme-state="dark"] .sun-glyph {
+			opacity: 1;
+			transform: translateY(0) scale(1.1);
+		}
 
-	.pill.theme-toggle[data-theme-state="dark"] .sun-icon {
-		opacity: 0;
-		transform: translateY(-8px);
-	}
+		.pill.theme-toggle .moon-glyph {
+			opacity: 1;
+			transform: translateY(0) scale(1.1);
+			color: color-mix(in srgb, var(--accent-2) 70%, var(--text-base) 30%);
+			transform-origin: center;
+			font-weight: 900;
+			-webkit-text-stroke: 1px color-mix(in srgb, var(--accent-2) 80%, var(--text-base) 20%);
+		}
 
-	.pill.theme-toggle[data-theme-state="dark"] .moon-icon {
-		opacity: 1;
-		transform: translateY(0);
+		.pill.theme-toggle[data-theme-state="dark"] .moon-glyph {
+			opacity: 0;
+			transform: translateY(-10px) scale(0.9);
+		}
+
+		.pill.theme-toggle:hover .moon-glyph,
+		.pill.theme-toggle:focus-visible .moon-glyph {
+			color: color-mix(in srgb, var(--accent) 85%, var(--text-base) 15%);
+		}
+
+		.pill.theme-toggle[data-theme-state="dark"]:hover .sun-glyph,
+		.pill.theme-toggle[data-theme-state="dark"]:focus-visible .sun-glyph {
+			-webkit-text-stroke: 2px color-mix(in srgb, var(--accent) 100%, white 25%);
+			text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 45%, transparent);
+		}
 	}
 
 	.pill.subtle {
@@ -562,11 +537,11 @@ const currentYear = new Date().getFullYear();
 		font-size: 0.95rem;
 	}
 
-	@media (prefers-reduced-motion: reduce) {
-		.pill.theme-toggle .theme-icon svg {
-			transition: none;
+		@media (prefers-reduced-motion: reduce) {
+			.pill.theme-toggle .glyph {
+				transition: none;
+			}
 		}
-	}
 
 	main.shell {
 		flex: 1 0 auto;
