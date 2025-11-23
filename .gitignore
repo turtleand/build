@@ -34,5 +34,6 @@ misc/
 dist/
 coverage/
 .vscode/
+test-results/
 
 pending_notifications.txt
