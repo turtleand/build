@@ -122,10 +122,16 @@ const currentYear = new Date().getFullYear();
 		<header class="site-header">
 			<div class="shell">
 				<a class="brand" href={buildHref("/")}>
-					<span class="brand-mark">
-						<img src="/logo.svg" alt="Turtleand logo" loading="lazy" />
+					<span class="brand-lockup">
+						<img
+							class="brand-lockup-logo"
+							src="/logo.svg"
+							alt="Turtleand logo"
+							loading="lazy"
+							decoding="async"
+						/>
+						<span class="brand-wordmark">TurtleanD</span>
 					</span>
-					<span class="brand-badge">Turtleand</span>
 				</a>
 				<div class="nav-row">
 					<nav aria-label={dictionary.navigation.language}>
@@ -345,41 +351,64 @@ const currentYear = new Date().getFullYear();
 
 	.brand {
 		display: inline-flex;
-		align-items: center;
-		gap: 0.5rem;
 		color: inherit;
 		text-decoration: none;
+		align-items: center;
 	}
 
-	.brand-mark {
-		width: 42px;
-		height: 42px;
-		border-radius: 12px;
-		background: var(--surface-contrast);
-		display: grid;
-		place-items: center;
-		border: 1px solid var(--border);
-		box-shadow: var(--shadow-soft);
-	}
-
-	.brand-mark img {
-		width: 28px;
-		height: 28px;
-	}
-
-	.brand-badge {
+	.brand-lockup {
 		display: inline-flex;
 		align-items: center;
-		justify-content: center;
-		gap: 0.35rem;
-		padding: 0.3rem 0.85rem;
+		gap: 0.75rem;
+		padding: 0.35rem 1rem 0.35rem 0.5rem;
+		border-radius: 999px;
+		border: 1px solid transparent;
+		background: color-mix(in srgb, var(--surface-card) 90%, transparent);
+		box-shadow: var(--shadow-soft);
+		transition:
+			transform 0.25s ease,
+			border-color 0.25s ease,
+			box-shadow 0.25s ease;
+	}
+
+	.brand:hover .brand-lockup,
+	.brand:focus-visible .brand-lockup {
+		transform: translateY(-1px);
+		border-color: color-mix(in srgb, var(--accent) 55%, var(--border) 45%);
+		box-shadow: 0 14px 35px rgba(15, 23, 42, 0.2);
+	}
+
+	.brand:focus-visible {
+		outline: none;
+	}
+
+	.brand:focus-visible .brand-lockup {
+		outline: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
+		outline-offset: 4px;
+	}
+
+	.brand-lockup-logo {
+		width: 48px;
+		height: auto;
+		display: block;
+		filter: drop-shadow(0 5px 15px rgba(15, 23, 42, 0.25));
+	}
+
+	.brand-wordmark {
+		display: inline-flex;
+		align-items: center;
+		white-space: nowrap;
+		padding: 0.25rem 0.9rem;
 		border-radius: var(--radius-pill);
-		border: 1px solid var(--border);
+		border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
 		background: var(--surface-contrast);
-		color: var(--text-base);
-		font-weight: 700;
+		font-family: var(--font-heading, "Playfair Display", serif);
+		font-size: 1.1rem;
 		text-transform: uppercase;
-		letter-spacing: 0.08em;
+		letter-spacing: 0.15em;
+		font-weight: 700;
+		color: var(--text-base);
+		box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
 	}
 
 	.nav-row {

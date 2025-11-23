@@ -16,7 +16,7 @@ const { post, locale, basePath = '', alternateHref } = Astro.props as Props;
 const { Content } = await post.render();
 const dictionary = getDictionary(locale);
 const altLocale = otherLocale(locale);
-const alternateLabel = `${dictionary.postPage.translatedLabel} ${dictionary.navigation.locales[altLocale].label}`;
+const alternateLabel = dictionary.navigation.locales[altLocale].label;
 const canonical = Astro.url?.href;
 ---
 
@@ -42,12 +42,6 @@ const canonical = Astro.url?.href;
 					<li><a href={`${basePath}/tags/${getTagSlug(tag)}`}>{tag}</a></li>
 				))}
 			</ul>
-		)}
-		{alternateHref && (
-			<p class="muted alt-link">
-				<span>{dictionary.postPage.translatedLabel}</span>
-				<a href={alternateHref}>{dictionary.navigation.locales[altLocale].label}</a>
-			</p>
 		)}
 		<div class="content">
 			<Content />
@@ -147,10 +141,4 @@ const canonical = Astro.url?.href;
 	color: var(--text-muted);
 }
 
-.alt-link {
-	display: flex;
-	gap: 0.5rem;
-	align-items: baseline;
-	margin: 0.2rem 0 1rem;
-}
 </style>
