@@ -1,4 +1,7 @@
 ---
+import "@fontsource-variable/inter";
+import "@fontsource-variable/space-grotesk";
+import "@fontsource-variable/jetbrains-mono";
 import type { Dictionary, Locale } from "../utils/i18n";
 
 interface Props {
@@ -109,12 +112,6 @@ const currentYear = new Date().getFullYear();
 		<title>{title}</title>
 		{description && <meta name="description" content={description} />}
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link
-			href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500;700&display=swap"
-			rel="stylesheet"
-		/>
 		<script is:inline set:html={themeScript} />
 		<slot name="head" />
 	</head>
@@ -239,9 +236,9 @@ const currentYear = new Date().getFullYear();
 
 <style is:global>
 	:root {
-		--font-heading: "Playfair Display", Georgia, serif;
-		--font-body: "Inter", "Segoe UI", -apple-system, BlinkMacSystemFont,
-			"Helvetica Neue", Arial, sans-serif;
+		--font-heading: "Space Grotesk", "IBM Plex Sans", "Inter", sans-serif;
+		--font-body: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+		--font-code: "JetBrains Mono", "Fira Code", "Source Code Pro", monospace;
 		--shadow-soft: 0 20px 60px -45px rgba(17, 24, 39, 0.55);
 		--shadow-card: 0 20px 40px -32px rgba(17, 24, 39, 0.35);
 		--radius-lg: 18px;
@@ -315,6 +312,13 @@ const currentYear = new Date().getFullYear();
 		transition:
 			background 0.3s ease,
 			color 0.3s ease;
+	}
+
+	code,
+	pre {
+		font-family: var(--font-code);
+		font-size: 0.95rem;
+		font-feature-settings: "liga" 0;
 	}
 
 	a {
@@ -402,7 +406,13 @@ const currentYear = new Date().getFullYear();
 		border-radius: var(--radius-pill);
 		border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
 		background: var(--surface-contrast);
-		font-family: var(--font-heading, "Playfair Display", serif);
+		font-family: var(
+			--font-heading,
+			"Space Grotesk",
+			"IBM Plex Sans",
+			"Inter",
+			sans-serif
+		);
 		font-size: 1.1rem;
 		text-transform: uppercase;
 		letter-spacing: 0.15em;

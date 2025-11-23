@@ -118,7 +118,8 @@ const canonical = Astro.url?.href;
 
 .content :global(code),
 .content :global(pre) {
-	font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+	font-family: var(--font-code);
+	font-feature-settings: "liga" 0;
 }
 
 .content :global(pre) {
