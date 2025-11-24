@@ -52,7 +52,13 @@
     "backLabel": "Back to blog",
     "publishedOn": "Published",
     "tagsLabel": "Tags",
-    "translatedLabel": "View this post in"
+    "translatedLabel": "View this post in",
+    "timeline": {
+      "label": "Timeline",
+      "jumpLabel": "Jump between sections",
+      "toggleHide": "Hide timeline",
+      "toggleShow": "Show timeline"
+    }
   },
   "buttons": {
     "viewPortal": "Visit Portal",

@@ -52,7 +52,13 @@
     "backLabel": "Regresar al blog",
     "publishedOn": "Publicado",
     "tagsLabel": "Etiquetas",
-    "translatedLabel": "Ver esta publicación en"
+    "translatedLabel": "Ver esta publicación en",
+    "timeline": {
+      "label": "Cronología",
+      "jumpLabel": "Saltar entre secciones",
+      "toggleHide": "Ocultar cronología",
+      "toggleShow": "Mostrar cronología"
+    }
   },
   "buttons": {
     "viewPortal": "Visitar Portal",
