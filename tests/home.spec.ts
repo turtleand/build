@@ -47,4 +47,43 @@ test.describe('Home page', () => {
 		await expect(tagPostCards.first()).toBeVisible();
 		expect(await tagPostCards.count()).toBeGreaterThan(0);
 	});
+
+		test('filters posts via search keywords without affecting the All posts grid', async ({ page }) => {
+			await page.goto('/');
+
+			const allPostsGrid = page.locator('[data-post-grid] .post-card');
+			const initialAllPostCount = await allPostsGrid.count();
+			expect(initialAllPostCount).toBeGreaterThan(0);
+
+			const searchInput = page.getByPlaceholder('Search titles, tags, or body text');
+			await searchInput.fill('pagination');
+
+			const resultsGrid = page.locator('[data-search-grid] .post-card');
+			await expect(resultsGrid.first()).toBeVisible();
+			const resultCount = await resultsGrid.count();
+			expect(resultCount).toBeGreaterThanOrEqual(2);
+			await expect(page.getByRole('heading', { level: 3, name: 'Pagination Playbook' })).toBeVisible();
+			await expect(page.getByRole('heading', { level: 3, name: 'Pagination Load Testing' })).toBeVisible();
+			await expect(page.getByRole('button', { name: 'Clear search' })).toBeVisible();
+			await expect(page.locator('[data-search-count]')).toContainText('Found');
+			await expect(page.locator('[data-pagination]')).toBeVisible();
+			expect(await allPostsGrid.count()).toBe(initialAllPostCount);
+
+			await searchInput.fill('asdf');
+			await expect(page.locator('[data-search-grid] .post-card')).toHaveCount(0);
+			await expect(page.getByText('No posts match your search.')).toBeVisible();
+			expect(await allPostsGrid.count()).toBe(initialAllPostCount);
+		});
+
+	test('shows more posts on the second page of pagination', async ({ page }) => {
+		await page.goto('/');
+		const nextLink = page.getByRole('link', { name: 'Next' });
+		await expect(nextLink).toBeVisible();
+		await nextLink.click();
+		await expect(page).toHaveURL(/\/page\/2$/);
+		await expect(page.getByText('Page 2 /')).toBeVisible();
+		const pageCards = page.locator('.post-card');
+		await expect(pageCards.first()).toBeVisible();
+		expect(await pageCards.count()).toBeGreaterThan(0);
+	});
 });

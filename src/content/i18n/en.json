@@ -36,6 +36,14 @@
     "allTitle": "All posts",
     "allDescription": "Newest to oldest across the build track."
   },
+  "search": {
+    "label": "Search posts",
+    "placeholder": "Search titles, tags, or body text",
+    "countDefault": "Showing {count} posts",
+    "countResults": "Found {count} results",
+    "empty": "No posts match your search.",
+    "clear": "Clear search"
+  },
   "pagination": {
     "label": "Page",
     "previous": "Previous",

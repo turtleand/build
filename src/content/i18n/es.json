@@ -36,6 +36,14 @@
     "allTitle": "Todas las publicaciones",
     "allDescription": "De la más reciente a la más antigua en el track de build."
   },
+  "search": {
+    "label": "Buscar publicaciones",
+    "placeholder": "Busca por título, etiquetas o contenido",
+    "countDefault": "Mostrando {count} publicaciones",
+    "countResults": "Encontramos {count} resultados",
+    "empty": "No hay publicaciones que coincidan con tu búsqueda.",
+    "clear": "Limpiar búsqueda"
+  },
   "pagination": {
     "label": "Página",
     "previous": "Anterior",
