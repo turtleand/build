@@ -1,9 +1,9 @@
 ---
-import BlogLayout from '../layouts/BlogLayout.astro';
-import type { PostEntry } from '../utils/blog';
-import { formatDate, getTagSlug } from '../utils/blog';
-import type { Locale } from '../utils/i18n';
-import { getDictionary, otherLocale } from '../utils/i18n';
+import BlogLayout from "../layouts/BlogLayout.astro";
+import type { PostEntry } from "../utils/blog";
+import { formatDate, getTagSlug } from "../utils/blog";
+import type { Locale } from "../utils/i18n";
+import { getDictionary, otherLocale } from "../utils/i18n";
 
 interface Props {
 	post: PostEntry;
@@ -12,7 +12,7 @@ interface Props {
 	alternateHref?: string;
 }
 
-const { post, locale, basePath = '', alternateHref } = Astro.props as Props;
+const { post, locale, basePath = "", alternateHref } = Astro.props as Props;
 const { Content } = await post.render();
 const dictionary = getDictionary(locale);
 const altLocale = otherLocale(locale);
@@ -33,16 +33,24 @@ const canonical = Astro.url?.href;
 		{canonical && <link rel="canonical" href={canonical} />}
 	</Fragment>
 	<article class="post">
-		<p class="back-link"><a href={basePath || '/'}>← {dictionary.postPage.backLabel}</a></p>
+		<p class="back-link">
+			<a href={basePath || "/"}>← {dictionary.postPage.backLabel}</a>
+		</p>
 		<h1>{post.data.title}</h1>
-		<p class="meta">{dictionary.postPage.publishedOn}: {formatDate(post.data.date, locale)}</p>
-		{post.data.tags.length > 0 && (
-			<ul class="tags" aria-label={dictionary.postPage.tagsLabel}>
-				{post.data.tags.map((tag) => (
-					<li><a href={`${basePath}/tags/${getTagSlug(tag)}`}>{tag}</a></li>
-				))}
-			</ul>
-		)}
+		<p class="meta">
+			{dictionary.postPage.publishedOn}: {formatDate(post.data.date, locale)}
+		</p>
+		{
+			post.data.tags.length > 0 && (
+				<ul class="tags" aria-label={dictionary.postPage.tagsLabel}>
+					{post.data.tags.map((tag) => (
+						<li>
+							<a href={`${basePath}/tags/${getTagSlug(tag)}`}>{tag}</a>
+						</li>
+					))}
+				</ul>
+			)
+		}
 		<div class="content">
 			<Content />
 		</div>
@@ -50,96 +58,102 @@ const canonical = Astro.url?.href;
 </BlogLayout>
 
 <style>
-.post {
-	max-width: 780px;
-	margin: 0 auto;
-	background: var(--surface-card);
-	padding: 2rem;
-	border-radius: 20px;
-	border: 1px solid var(--border);
-	box-shadow: var(--shadow-card);
-}
+	.post {
+		max-width: min(780px, calc(100vw - 2rem));
+		margin: 0 auto;
+		background: var(--surface-card);
+		padding: 2rem;
+		border-radius: 20px;
+		border: 1px solid var(--border);
+		box-shadow: var(--shadow-card);
+	}
 
-.back-link {
-	margin: 0 0 1rem;
-}
+	@media (min-width: 1200px) and (orientation: landscape) {
+		.post {
+			max-width: min(1150px, calc(100vw - 6rem));
+			padding: 2.5rem 3rem;
+		}
+	}
 
-.back-link a {
-	text-decoration: none;
-	color: var(--text-muted);
-}
+	.back-link {
+		margin: 0 0 1rem;
+	}
 
-.back-link a:hover,
-.back-link a:focus-visible {
-	color: var(--text-base);
-	text-decoration: underline;
-}
+	.back-link a {
+		text-decoration: none;
+		color: var(--text-muted);
+	}
 
-.post h1 {
-	margin: 0 0 0.35rem;
-	font-family: var(--font-heading);
-}
+	.back-link a:hover,
+	.back-link a:focus-visible {
+		color: var(--text-base);
+		text-decoration: underline;
+	}
 
-.meta {
-	margin: 0;
-	color: var(--text-muted);
-}
+	.post h1 {
+		margin: 0 0 0.35rem;
+		font-family: var(--font-heading);
+	}
 
-.tags {
-	list-style: none;
-	padding: 0;
-	margin: 0.85rem 0 0.5rem;
-	display: flex;
-	gap: 0.5rem;
-	flex-wrap: wrap;
-}
+	.meta {
+		margin: 0;
+		color: var(--text-muted);
+	}
 
-.tags a {
-	text-decoration: none;
-	padding: 0.25rem 0.65rem;
-	background: var(--surface-contrast);
-	border-radius: var(--radius-pill);
-	color: var(--text-base);
-	font-size: 0.85rem;
-	border: 1px solid var(--border);
-}
+	.tags {
+		list-style: none;
+		padding: 0;
+		margin: 0.85rem 0 0.5rem;
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
 
-.content :global(p) {
-	line-height: 1.65;
-	color: var(--text-base);
-}
+	.tags a {
+		text-decoration: none;
+		padding: 0.25rem 0.65rem;
+		background: var(--surface-contrast);
+		border-radius: var(--radius-pill);
+		color: var(--text-base);
+		font-size: 0.85rem;
+		border: 1px solid var(--border);
+	}
 
-.content :global(h2),
-.content :global(h3) {
-	margin-top: 1.4rem;
-	margin-bottom: 0.6rem;
-	font-family: var(--font-heading);
-}
+	.content :global(p) {
+		line-height: 1.65;
+		color: var(--text-base);
+	}
 
-.content :global(code),
-.content :global(pre) {
-	font-family: var(--font-code);
-	font-feature-settings: "liga" 0;
-}
+	.content :global(h2),
+	.content :global(h3) {
+		margin-top: 1.4rem;
+		margin-bottom: 0.6rem;
+		font-family: var(--font-heading);
+	}
 
-.content :global(pre) {
-	padding: 1rem;
-	background: var(--surface-contrast);
-	border-radius: 12px;
-	border: 1px solid var(--border);
-	overflow-x: auto;
-}
+	.content :global(code),
+	.content :global(pre) {
+		font-family: var(--font-code);
+		font-feature-settings: "liga" 0;
+	}
 
-.content :global(img) {
-	max-width: 100%;
-	height: auto;
-	border-radius: 12px;
-	display: block;
-	margin: 1.25rem auto;
-}
+	.content :global(pre) {
+		padding: 1rem;
+		background: var(--surface-contrast);
+		border-radius: 12px;
+		border: 1px solid var(--border);
+		overflow-x: auto;
+	}
 
-.muted {
-	color: var(--text-muted);
-}
+	.content :global(img) {
+		max-width: 100%;
+		height: auto;
+		border-radius: 12px;
+		display: block;
+		margin: 1.25rem auto;
+	}
 
+	.muted {
+		color: var(--text-muted);
+	}
 </style>
