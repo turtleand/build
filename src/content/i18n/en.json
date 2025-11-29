@@ -24,6 +24,9 @@
       "dark": "Dark"
     }
   },
+  "randomArticleModal": {
+    "label": "Picking an article..."
+  },
   "hero": {
     "title": "Where builders and ideas ship together",
     "subtitle": "Release notes, patterns, and thinking from the Turtleand build track.",

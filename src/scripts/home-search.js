@@ -1,26 +1,32 @@
 import Fuse from 'fuse.js';
 
-type SearchDoc = {
-  id: string;
-  title: string;
-  description: string;
-  tags: string[];
-  body: string;
-  href: string;
-  dateLabel: string;
-};
+/**
+ * @typedef {Object} SearchDoc
+ * @property {string} id
+ * @property {string} title
+ * @property {string} description
+ * @property {string[]} tags
+ * @property {string} body
+ * @property {string} href
+ * @property {string} dateLabel
+ */
 
-type SearchConfig = {
-  countResults?: string;
-  defaultCount?: string;
-  readMoreLabel?: string;
-  tagsLabel?: string;
-};
+/**
+ * @typedef {Object} SearchConfig
+ * @property {string} [countResults]
+ * @property {string} [defaultCount]
+ * @property {string} [readMoreLabel]
+ * @property {string} [tagsLabel]
+ */
 
 const DATA_ID = 'home-search-data';
 const CONFIG_ID = 'home-search-config';
 
-const replaceCount = (template: string | undefined, count: number) =>
+/**
+ * @param {string | undefined} template
+ * @param {number} count
+ */
+const replaceCount = (template, count) =>
   (template || '').replace('{count}', String(count));
 
 const setupSearch = () => {
@@ -32,8 +38,10 @@ const setupSearch = () => {
     return;
   }
 
-  const docs: SearchDoc[] = JSON.parse(dataEl.textContent || '[]');
-  const config: SearchConfig = JSON.parse(configEl.textContent || '{}');
+  /** @type {SearchDoc[]} */
+  const docs = JSON.parse(dataEl.textContent || '[]');
+  /** @type {SearchConfig} */
+  const config = JSON.parse(configEl.textContent || '{}');
 
   const fuse =
     docs.length > 0
@@ -50,30 +58,40 @@ const setupSearch = () => {
       })
       : null;
 
-  const input = document.querySelector<HTMLInputElement>('[data-search-input]');
-  const clearBtn = document.querySelector<HTMLButtonElement>('[data-search-clear]');
-  const resultsGrid = document.querySelector<HTMLElement>('[data-search-grid]');
-  const emptyState = document.querySelector<HTMLElement>('[data-search-empty]');
-  const countLabel = document.querySelector<HTMLElement>('[data-search-count]');
-  const templateNodes = document.querySelectorAll<HTMLTemplateElement>('[data-card-template]');
+  /** @type {HTMLInputElement | null} */
+  const input = document.querySelector('[data-search-input]');
+  /** @type {HTMLButtonElement | null} */
+  const clearBtn = document.querySelector('[data-search-clear]');
+  /** @type {HTMLElement | null} */
+  const resultsGrid = document.querySelector('[data-search-grid]');
+  /** @type {HTMLElement | null} */
+  const emptyState = document.querySelector('[data-search-empty]');
+  /** @type {HTMLElement | null} */
+  const countLabel = document.querySelector('[data-search-count]');
+  /** @type {NodeListOf<HTMLTemplateElement>} */
+  const templateNodes = document.querySelectorAll('[data-card-template]');
 
   if (!input || !clearBtn || !resultsGrid || !emptyState || !countLabel) {
     console.warn('Search UI missing required elements.');
     return;
   }
 
-  const templateMap = new Map<string, HTMLTemplateElement>();
+  /** @type {Map<string, HTMLTemplateElement>} */
+  const templateMap = new Map();
   templateNodes.forEach((tpl) => {
     const slug = tpl.dataset.slug;
     if (slug) templateMap.set(slug, tpl);
   });
 
-  const buildCardNode = (doc: SearchDoc) => {
+  /**
+   * @param {SearchDoc} doc
+   */
+  const buildCardNode = (doc) => {
     const template = templateMap.get(doc.id);
     if (template) {
-      const fragment = template.content.cloneNode(true) as DocumentFragment;
+      const fragment = template.content.cloneNode(true);
       const element = fragment.firstElementChild;
-      if (element) return element as HTMLElement;
+      if (element) return /** @type {HTMLElement} */ (element);
     }
 
     // Fallback: basic card if template missing
@@ -99,10 +117,13 @@ const setupSearch = () => {
     clearBtn.hidden = true;
   };
 
-  const renderMatches = (matches: SearchDoc[]) => {
+  /**
+   * @param {SearchDoc[]} matches
+   */
+  const renderMatches = (matches) => {
     const nodes = matches
       .map((match) => buildCardNode(match))
-      .filter((node): node is HTMLElement => Boolean(node));
+      .filter((node) => Boolean(node));
     const hasMatches = matches.length > 0;
     if (hasMatches) {
       resultsGrid.replaceChildren(...nodes);

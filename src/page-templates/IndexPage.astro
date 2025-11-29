@@ -5,7 +5,7 @@ import PostCard from '../components/PostCard.astro';
 import { POSTS_PER_PAGE, filterByLocale, filterPublished, formatDate, getPostSlug, sortPosts } from '../utils/blog';
 import type { Locale } from '../utils/i18n';
 import { getDictionary, otherLocale } from '../utils/i18n';
-import homeSearchScript from '../scripts/home-search.ts?url';
+import homeSearchScript from '../scripts/home-search.js?url';
 
 interface Props {
 	locale: Locale;

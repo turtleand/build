@@ -24,6 +24,9 @@
       "dark": "Oscuro"
     }
   },
+  "randomArticleModal": {
+    "label": "Eligiendo un artículo..."
+  },
   "hero": {
     "title": "Donde las ideas y quienes construyen avanzan juntas",
     "subtitle": "Notas de lanzamiento, patrones y pensamiento del track de build en Turtleand.",
