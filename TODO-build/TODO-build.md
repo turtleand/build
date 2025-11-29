@@ -1,0 +1,1 @@
+- Open a random blog article whenever someone clicks the TurtleanD icon. Add a modal animation, with the logo image and a moving background stating: "Choosing a random article", before navigating to it

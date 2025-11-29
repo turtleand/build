@@ -1,0 +1,403 @@
+---
+import BlogLayout from "../layouts/BlogLayout.astro";
+import type { PostEntry } from "../utils/blog";
+import { formatDate, getTagSlug } from "../utils/blog";
+import type { Locale } from "../utils/i18n";
+import { getDictionary, otherLocale } from "../utils/i18n";
+
+interface Props {
+	post: PostEntry;
+	locale: Locale;
+	basePath?: string;
+	alternateHref?: string;
+}
+
+const { post, locale, basePath = "", alternateHref } = Astro.props as Props;
+const { Content, headings = [] } = await post.render();
+const timelineHeadings = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+const hasTimeline = timelineHeadings.length > 0;
+const dictionary = getDictionary(locale);
+const altLocale = otherLocale(locale);
+const alternateLabel = dictionary.navigation.locales[altLocale].label;
+const canonical = Astro.url?.href;
+const timelineCopy = {
+	label: dictionary.postPage.timeline?.label ?? "Timeline",
+	jumpLabel: dictionary.postPage.timeline?.jumpLabel ?? "Jump between sections",
+	toggleHide: dictionary.postPage.timeline?.toggleHide ?? "Hide timeline",
+	toggleShow: dictionary.postPage.timeline?.toggleShow ?? "Show timeline",
+};
+const timelineId = hasTimeline
+	? `timeline-${post.slug.replace(/[^a-z0-9-]/gi, "-")}`
+	: "";
+const timelineToggleScript = hasTimeline
+	? `
+document.addEventListener('DOMContentLoaded', () => {
+  const wrapper = document.querySelector('[data-timeline-wrapper]');
+  const toggles = Array.from(document.querySelectorAll('[data-timeline-toggle]'));
+  if (!wrapper || toggles.length === 0) return;
+
+  let hidden = false;
+  const labels = {
+    hide: ${JSON.stringify(timelineCopy.toggleHide)},
+    show: ${JSON.stringify(timelineCopy.toggleShow)}
+  };
+
+  const sync = () => {
+    wrapper.hidden = hidden;
+    wrapper.setAttribute('data-timeline-state', hidden ? 'hidden' : 'visible');
+    wrapper.style.display = hidden ? 'none' : '';
+    toggles.forEach((btn) => {
+      btn.setAttribute('aria-pressed', hidden ? 'true' : 'false');
+      const label = btn.querySelector('[data-toggle-label]');
+      if (label) {
+        label.textContent = hidden ? labels.show : labels.hide;
+      } else {
+        btn.textContent = hidden ? labels.show : labels.hide;
+      }
+    });
+  };
+
+  toggles.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      hidden = !hidden;
+      sync();
+    });
+  });
+
+  sync();
+});
+`
+	: "";
+---
+
+<BlogLayout
+	title={`${post.data.title} | ${dictionary.site.title}`}
+	description={post.data.description}
+	locale={locale}
+	dictionary={dictionary}
+	basePath={basePath}
+	alternateHref={alternateHref}
+	alternateLabel={alternateLabel}
+>
+	<Fragment slot="head">
+		{canonical && <link rel="canonical" href={canonical} />}
+	</Fragment>
+	{hasTimeline && <script is:inline set:html={timelineToggleScript} />}
+	<div class={`post-layout${hasTimeline ? " has-timeline" : ""}`}>
+		{hasTimeline && (
+			<aside
+				class="timeline-shell"
+				data-timeline-wrapper
+				aria-label={timelineCopy.label}
+				id={timelineId}
+			>
+				<div class="timeline-header">
+					<span class="sr-only">
+						{timelineCopy.label}: {timelineCopy.jumpLabel}
+					</span>
+					<button
+						type="button"
+						class="pill subtle timeline-toggle"
+						data-timeline-toggle
+						aria-pressed="false"
+						aria-controls={timelineId}
+					>
+						<span data-toggle-label>{timelineCopy.toggleHide}</span>
+					</button>
+				</div>
+				<nav class="timeline-nav" aria-label={timelineCopy.label}>
+					<ol class="timeline-list">
+						{timelineHeadings.map((heading) => (
+							<li class={`timeline-item${heading.depth === 3 ? " is-child" : ""}`}>
+								<a href={`#${heading.slug}`}>
+									<span class="timeline-dot" aria-hidden="true"></span>
+									<span class="timeline-label">{heading.text}</span>
+								</a>
+							</li>
+						))}
+					</ol>
+				</nav>
+			</aside>
+		)}
+		<div class="post-column">
+			{
+				hasTimeline && (
+					<div class="timeline-inline-toggle">
+						<button
+							type="button"
+							class="pill subtle timeline-toggle"
+							data-timeline-toggle
+							aria-pressed="false"
+							aria-controls={timelineId}
+						>
+							<span data-toggle-label>{timelineCopy.toggleHide}</span>
+						</button>
+					</div>
+				)
+			}
+			<article class="post">
+				<p class="back-link">
+					<a href={basePath || "/"}>← {dictionary.postPage.backLabel}</a>
+				</p>
+				<h1>{post.data.title}</h1>
+				<p class="meta">
+					{dictionary.postPage.publishedOn}: {formatDate(post.data.date, locale)}
+				</p>
+				{
+					post.data.tags.length > 0 && (
+						<ul class="tags" aria-label={dictionary.postPage.tagsLabel}>
+							{post.data.tags.map((tag) => (
+								<li>
+									<a href={`${basePath}/tags/${getTagSlug(tag)}`}>{tag}</a>
+								</li>
+							))}
+						</ul>
+					)
+				}
+				<div class="content">
+					<Content />
+				</div>
+			</article>
+		</div>
+	</div>
+</BlogLayout>
+
+<style>
+	.post-layout {
+		--post-max-width: min(880px, calc(100vw - 2.5rem));
+		--timeline-width: 260px;
+		--timeline-gap: 2.25rem;
+		--timeline-anchor: calc((100% - var(--post-max-width)) / 2);
+		display: grid;
+		justify-items: center;
+		position: relative;
+		gap: 0;
+		align-items: start;
+	}
+
+	.post-column {
+		grid-row: 1;
+		grid-column: 1;
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.post {
+		width: 100%;
+		max-width: var(--post-max-width);
+		margin: 0 auto;
+		background: var(--surface-card);
+		padding: 2rem;
+		border-radius: 20px;
+		border: 1px solid var(--border);
+		box-shadow: var(--shadow-card);
+	}
+
+	.back-link {
+		margin: 0 0 1rem;
+	}
+
+	.back-link a {
+		text-decoration: none;
+		color: var(--text-muted);
+	}
+
+	.back-link a:hover,
+	.back-link a:focus-visible {
+		color: var(--text-base);
+		text-decoration: underline;
+	}
+
+	.post h1 {
+		margin: 0 0 0.35rem;
+		font-family: var(--font-heading);
+	}
+
+	.meta {
+		margin: 0;
+		color: var(--text-muted);
+	}
+
+	.tags {
+		list-style: none;
+		padding: 0;
+		margin: 0.85rem 0 0.5rem;
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.tags a {
+		text-decoration: none;
+		padding: 0.25rem 0.65rem;
+		background: var(--surface-contrast);
+		border-radius: var(--radius-pill);
+		color: var(--text-base);
+		font-size: 0.85rem;
+		border: 1px solid var(--border);
+	}
+
+	.content :global(p) {
+		line-height: 1.65;
+		color: var(--text-base);
+	}
+
+	.content :global(h2),
+	.content :global(h3) {
+		margin-top: 1.4rem;
+		margin-bottom: 0.6rem;
+		font-family: var(--font-heading);
+	}
+
+	.content :global(code),
+	.content :global(pre) {
+		font-family: var(--font-code);
+		font-feature-settings: "liga" 0;
+	}
+
+	.content :global(pre) {
+		padding: 1rem;
+		background: var(--surface-contrast);
+		border-radius: 12px;
+		border: 1px solid var(--border);
+		overflow-x: auto;
+	}
+
+	.content :global(img) {
+		max-width: 100%;
+		height: auto;
+		border-radius: 12px;
+		display: block;
+		margin: 1.25rem auto;
+	}
+
+	.muted {
+		color: var(--text-muted);
+	}
+
+	.timeline-shell {
+		display: none;
+		grid-row: 1;
+		grid-column: 1;
+		align-self: flex-start;
+		width: var(--timeline-width);
+		background: color-mix(in srgb, var(--surface-card) 94%, transparent);
+		border: 1px solid var(--border);
+		border-radius: 16px;
+		box-shadow: var(--shadow-soft);
+		padding: 1rem 1rem 1.25rem;
+	}
+
+	.timeline-shell[hidden],
+	.timeline-shell[data-timeline-state="hidden"] {
+		display: none !important;
+	}
+
+	.timeline-header {
+		display: flex;
+		justify-content: flex-end;
+		margin-bottom: 0.25rem;
+	}
+
+	.timeline-toggle {
+		white-space: nowrap;
+	}
+
+	.timeline-nav {
+		margin-top: 0.5rem;
+	}
+
+	.timeline-list {
+		list-style: none;
+		padding: 0.35rem 0 0.35rem 0.25rem;
+		margin: 0;
+		display: grid;
+		gap: 0.5rem;
+	}
+
+	.timeline-item {
+		display: flex;
+		align-items: flex-start;
+		padding-left: 0.35rem;
+	}
+
+	.timeline-item.is-child {
+		padding-left: 1rem;
+	}
+
+	.timeline-item.is-child .timeline-dot {
+		--dot-size: 7px;
+		background: var(--accent-2);
+		margin-top: 0.05rem;
+	}
+
+	.timeline-item a {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.65rem;
+		text-decoration: none;
+		color: var(--text-base);
+		font-weight: 550;
+		font-size: 0.97rem;
+		transition:
+			color 0.2s ease,
+			transform 0.2s ease;
+	}
+
+	.timeline-item a:hover,
+	.timeline-item a:focus-visible {
+		color: var(--accent);
+		transform: translateX(2px);
+	}
+
+	.timeline-dot {
+		--dot-size: 10px;
+		width: var(--dot-size);
+		height: var(--dot-size);
+		border-radius: 50%;
+		background: var(--accent);
+		box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 14%, transparent);
+		flex-shrink: 0;
+	}
+
+	.timeline-label {
+		line-height: 1.4;
+	}
+
+	.timeline-inline-toggle {
+		display: none;
+		width: 100%;
+		max-width: var(--post-max-width);
+		margin: 0 0 1rem;
+		justify-content: flex-end;
+	}
+
+	@media (min-width: 1200px) and (orientation: landscape) {
+		.post-layout {
+			--post-max-width: min(1040px, calc(100vw - 6rem));
+			--timeline-anchor: calc((100% - var(--post-max-width)) / 2);
+		}
+
+		.post {
+			padding: 2.5rem 3rem;
+		}
+	}
+
+	@media (min-width: 1700px) and (orientation: landscape) {
+		.timeline-shell {
+			display: flex;
+			flex-direction: column;
+			position: sticky;
+			top: 0;
+			transform: translateX(
+				calc(var(--timeline-anchor) - (var(--timeline-width) + var(--timeline-gap)))
+			);
+		}
+
+		.timeline-inline-toggle {
+			display: flex;
+		}
+	}
+</style>

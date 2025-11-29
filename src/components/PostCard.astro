@@ -1,0 +1,142 @@
+---
+import type { PostEntry } from '../utils/blog';
+import { formatDate, getPostSlug, getTagSlug } from '../utils/blog';
+import type { Locale, Dictionary } from '../utils/i18n';
+
+const { post, locale, basePath = '', dictionary } = Astro.props as {
+	post: PostEntry;
+	locale: Locale;
+	basePath?: string;
+	dictionary: Dictionary;
+};
+
+const buildHref = (path: string) => {
+	const normalized = path.startsWith('/') ? path : `/${path}`;
+	return `${basePath}${normalized}`.replace(/\/{2,}/g, '/');
+};
+
+const slug = getPostSlug(post);
+const formattedDate = formatDate(post.data.date, locale);
+const readMoreLabel = dictionary.buttons.readMore;
+---
+
+<article class="post-card">
+	<a class="card-link" href={buildHref(`/blog/${slug}`)} aria-label={`${readMoreLabel}: ${post.data.title}`}>
+		<div class="post-top">
+			<h3>{post.data.title}</h3>
+			<p class="post-date">{formattedDate}</p>
+		</div>
+		<p class="post-description">{post.data.description}</p>
+		{post.data.tags.length > 0 && (
+			<div class="tags-row">
+				<ul class="tags" aria-label={dictionary.postPage.tagsLabel}>
+					{post.data.tags.map((tag) => (
+						<li><span>{tag}</span></li>
+					))}
+				</ul>
+			</div>
+		)}
+	</a>
+</article>
+
+<style>
+.post-card {
+	height: 100%;
+	min-height: 240px;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	background: linear-gradient(135deg, color-mix(in srgb, var(--surface-card) 92%, transparent), var(--surface-card));
+	box-shadow: var(--shadow-soft);
+	transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+	overflow: hidden;
+}
+
+.post-card:hover,
+.post-card:focus-within {
+	transform: translateY(-2px);
+	border-color: var(--accent);
+	box-shadow: var(--shadow-card);
+	background: color-mix(in srgb, var(--surface-card) 96%, #ffffff 4%);
+}
+
+.card-link {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	gap: 0.5rem;
+	padding: 1.35rem;
+	color: inherit;
+	text-decoration: none;
+}
+
+.post-top {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 0.75rem;
+}
+
+.post-card h3 {
+	margin: 0;
+	font-size: 1.2rem;
+	font-family: var(--font-heading);
+	color: var(--text-base);
+}
+
+.post-date {
+	margin: 0;
+	font-size: 0.95rem;
+	color: var(--text-muted);
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.post-description {
+	margin: 0.25rem 0 0.35rem;
+	color: var(--text-muted);
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.tags-row {
+	margin-top: auto;
+	padding-top: 0.75rem;
+}
+
+.tags {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.45rem;
+	min-height: 2.2rem;
+	max-height: 2.8rem;
+	overflow: hidden;
+	align-content: flex-start;
+}
+
+.tags span {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.25rem 0.65rem;
+	border-radius: var(--radius-pill);
+	background: var(--surface-contrast);
+	color: var(--text-base);
+	font-size: 0.85rem;
+	border: 1px solid var(--border);
+}
+
+@media (max-width: 560px) {
+	.post-top {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.post-date {
+		white-space: normal;
+	}
+}
+</style>

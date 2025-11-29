@@ -1,0 +1,771 @@
+---
+import "@fontsource-variable/inter";
+import "@fontsource-variable/space-grotesk";
+import "@fontsource-variable/jetbrains-mono";
+import type { Dictionary, Locale } from "../utils/i18n";
+
+interface Props {
+	title: string;
+	description?: string;
+	locale: Locale;
+	dictionary: Dictionary;
+	basePath?: string;
+	alternateHref?: string;
+	alternateLabel?: string;
+}
+
+const {
+	title,
+	description,
+	locale,
+	dictionary,
+	basePath = "",
+	alternateHref,
+	alternateLabel,
+} = Astro.props as Props;
+const base = basePath === "/" ? "" : basePath;
+const buildHref = (path: string) => {
+	const normalized = path.startsWith("/") ? path : `/${path}`;
+	return `${base}${normalized}`.replace(/\/{2,}/g, "/");
+};
+
+const localeMeta = dictionary.navigation.locales;
+const otherLocale = locale === "en" ? "es" : "en";
+const languageHref = alternateHref ?? (otherLocale === "es" ? "/es" : "/");
+const themeScript = `
+  (() => {
+    const STORAGE_KEY = 'build-theme';
+    const root = document.documentElement;
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const getStored = () => {
+      try { return localStorage.getItem(STORAGE_KEY); } catch (_) { return null; }
+    };
+
+    const resolveTheme = () => getStored() || (media.matches ? 'dark' : 'light');
+
+    const applyTheme = (theme) => {
+      root.dataset.theme = theme;
+      try { localStorage.setItem(STORAGE_KEY, theme); } catch (_) {}
+      const toggle = document.querySelector('[data-theme-toggle]');
+      if (toggle) {
+        toggle.setAttribute('data-theme-state', theme);
+        toggle.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+      }
+    };
+
+    const toggleTheme = () => {
+      const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+    };
+
+    const init = () => {
+      applyTheme(resolveTheme());
+      const toggle = document.querySelector('[data-theme-toggle]');
+      if (toggle && !toggle.dataset.bound) {
+        toggle.dataset.bound = 'true';
+        toggle.addEventListener('click', toggleTheme);
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+    media.addEventListener('change', () => {
+      if (!getStored()) applyTheme(resolveTheme());
+    });
+
+    window.__toggleTheme = toggleTheme;
+  })();
+`;
+
+type SocialLink = {
+	name: string;
+	href: string;
+	title: string;
+	icon: "github" | "mail";
+};
+
+const socialLinks: SocialLink[] = [
+	{
+		name: "GitHub",
+		href: "https://github.com/turtlean",
+		title: "Turtleand on GitHub",
+		icon: "github",
+	},
+	{
+		name: "Email",
+		href: "mailto:hello@turtleand.com",
+		title: "Email Turtleand",
+		icon: "mail",
+	},
+];
+
+const shouldOpenInNewTab = (href: string) => href.startsWith("http");
+const footerRights = dictionary.footer?.rights ?? "All rights reserved.";
+const currentYear = new Date().getFullYear();
+---
+
+<!doctype html>
+<html lang={locale} data-theme="light">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{title}</title>
+		{description && <meta name="description" content={description} />}
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<script is:inline set:html={themeScript} />
+		<slot name="head" />
+	</head>
+	<body class="site-shell">
+		<header class="site-header">
+			<div class="shell">
+				<a class="brand" href={buildHref("/")}>
+					<span class="brand-lockup">
+						<img
+							class="brand-lockup-logo"
+							src="/logo.svg"
+							alt="Turtleand logo"
+							loading="lazy"
+							decoding="async"
+						/>
+						<span class="brand-wordmark">TurtleanD</span>
+					</span>
+				</a>
+				<div class="nav-row">
+					<nav aria-label={dictionary.navigation.language}>
+						<ul class="nav-list">
+							<li><a href={buildHref("/")}>{dictionary.navigation.home}</a></li>
+							<li>
+								<a href={buildHref("/tags")}>{dictionary.navigation.tags}</a>
+							</li>
+							<li>
+								<a href="https://turtleand.com"
+									>{dictionary.buttons.viewPortal}</a
+								>
+							</li>
+						</ul>
+					</nav>
+					<div class="header-actions">
+						<button
+							class="pill theme-toggle"
+							type="button"
+							data-theme-toggle
+							aria-pressed="false"
+							title={dictionary.navigation.theme.label}
+							aria-label={dictionary.navigation.theme.label}
+						>
+							<span class="icon theme-icon" aria-hidden="true">
+								<span class="glyph sun-glyph" aria-hidden="true">☀</span>
+								<span class="glyph moon-glyph" aria-hidden="true">☾</span>
+							</span>
+						</button>
+						<a
+							class="pill subtle"
+							href={languageHref}
+							aria-label={localeMeta[otherLocale].aria}
+						>
+							<span class="icon">🌐</span>
+							<span class="pill-label">{localeMeta[otherLocale].label}</span>
+						</a>
+					</div>
+				</div>
+			</div>
+		</header>
+		<main class="shell">
+			<slot />
+		</main>
+		<footer class="site-footer">
+			<div class="footer-divider" aria-hidden="true"></div>
+			<div class="shell footer-inner">
+				<ul class="footer-socials" aria-label="Turtleand social links">
+					{
+						socialLinks.map((link) => {
+							const external = shouldOpenInNewTab(link.href);
+							return (
+								<li>
+									<a
+										class={`footer-social-link${link.icon === "mail" ? " is-mail" : ""}`}
+										href={link.href}
+										title={link.title}
+										aria-label={link.title}
+										target={external ? "_blank" : undefined}
+										rel={external ? "noopener noreferrer" : undefined}
+									>
+										<span class="sr-only">{link.name}</span>
+										{link.icon === "github" ? (
+											<svg viewBox="0 0 24 24" aria-hidden="true" role="img">
+												<path
+													fill="currentColor"
+													d="M12 .5C5.65.5.5 5.65.5 12.02c0 5.11 3.32 9.44 7.93 10.97.58.11.8-.25.8-.57 0-.28-.01-1.02-.02-2-3.22.7-3.9-1.55-3.9-1.55-.53-1.34-1.3-1.7-1.3-1.7-1.06-.73.08-.72.08-.72 1.17.08 1.79 1.2 1.79 1.2 1.04 1.78 2.73 1.26 3.4.96.11-.75.41-1.26.74-1.55-2.57-.29-5.28-1.29-5.28-5.75 0-1.27.45-2.31 1.19-3.13-.12-.29-.52-1.46.11-3.05 0 0 .98-.31 3.21 1.19a11.16 11.16 0 0 1 5.84 0c2.23-1.5 3.2-1.19 3.2-1.19.63 1.59.24 2.76.12 3.05.74.82 1.19 1.86 1.19 3.13 0 4.47-2.72 5.46-5.31 5.75.42.36.79 1.08.79 2.18 0 1.58-.02 2.85-.02 3.24 0 .31.21.68.81.57 4.6-1.53 7.92-5.86 7.92-10.97C23.53 5.65 18.38.5 12 .5z"
+												/>
+											</svg>
+										) : (
+											<svg viewBox="0 0 24 24" aria-hidden="true" role="img">
+												<path
+													fill="none"
+													stroke="currentColor"
+													stroke-width="1.8"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													d="M3.25 6.5A2.75 2.75 0 0 1 6 3.75h12a2.75 2.75 0 0 1 2.75 2.75v10.5A2.75 2.75 0 0 1 18 19.75H6A2.75 2.75 0 0 1 3.25 17V6.5Z"
+												/>
+												<path
+													fill="none"
+													stroke="currentColor"
+													stroke-width="1.8"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													d="m4 7.5 7.42 5.07a1.5 1.5 0 0 0 1.66 0L20.5 7.5"
+												/>
+											</svg>
+										)}
+									</a>
+								</li>
+							);
+						})
+					}
+				</ul>
+				<div class="footer-meta">
+					<span class="footer-meta-year">Copyright © {currentYear}</span>
+					<span class="footer-meta-separator" aria-hidden="true">|</span>
+					<span class="footer-meta-rights">{footerRights}</span>
+				</div>
+			</div>
+		</footer>
+	</body>
+</html>
+
+<style is:global>
+	:root {
+		--font-heading: "Space Grotesk", "IBM Plex Sans", "Inter", sans-serif;
+		--font-body: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+		--font-code: "JetBrains Mono", "Fira Code", "Source Code Pro", monospace;
+		--shadow-soft: 0 20px 60px -45px rgba(17, 24, 39, 0.55);
+		--shadow-card: 0 20px 40px -32px rgba(17, 24, 39, 0.35);
+		--radius-lg: 18px;
+		--radius-pill: 999px;
+	}
+
+	:root,
+	[data-theme="light"] {
+		--page-bg: #f6f7fb;
+		--surface-card: #ffffff;
+		--surface-contrast: #e6e8ef;
+		--text-base: #121622;
+		--text-muted: #4b5563;
+		--accent: #1f6feb;
+		--accent-2: #6fe1c3;
+		--border: #e5e7eb;
+		--border-strong: #d1d5db;
+		--footer-bg-1: #f6f7fb;
+		--footer-bg-2: #eef2fb;
+		--footer-bg-3: #e3e8f3;
+		--footer-text: #0f172a;
+		--footer-muted: #4b5563;
+		--footer-pill-bg: rgba(255, 255, 255, 0.9);
+		--footer-pill-border: rgba(17, 24, 39, 0.15);
+		--footer-pill-bg-hover: #eef2fb;
+		--footer-pill-text: #0f172a;
+		--footer-mail-border: rgba(31, 111, 235, 0.35);
+		--footer-mail-bg: rgba(111, 225, 195, 0.18);
+		--footer-mail-bg-hover: rgba(111, 225, 195, 0.3);
+	}
+
+	[data-theme="dark"] {
+		--page-bg: #0e1e2b;
+		--surface-card: #0b1823;
+		--surface-contrast: #112439;
+		--text-base: #f4f4f4;
+		--text-muted: #a8b3ba;
+		--accent: #6fe1c3;
+		--accent-2: #2e8373;
+		--border: #11283a;
+		--border-strong: #1d3b4f;
+		--footer-bg-1: #081526;
+		--footer-bg-2: #040c16;
+		--footer-bg-3: #010409;
+		--footer-text: rgba(247, 250, 255, 0.9);
+		--footer-muted: rgba(247, 250, 255, 0.65);
+		--footer-pill-bg: rgba(255, 255, 255, 0.1);
+		--footer-pill-border: rgba(255, 255, 255, 0.35);
+		--footer-pill-bg-hover: rgba(255, 255, 255, 0.2);
+		--footer-pill-text: rgba(255, 255, 255, 0.9);
+		--footer-mail-border: rgba(103, 232, 249, 0.55);
+		--footer-mail-bg: rgba(8, 145, 178, 0.25);
+		--footer-mail-bg-hover: rgba(8, 145, 178, 0.4);
+	}
+
+	*,
+	*::before,
+	*::after {
+		box-sizing: border-box;
+	}
+
+	body.site-shell {
+		margin: 0;
+		min-height: 100vh;
+		display: flex;
+		flex-direction: column;
+		background: var(--page-bg);
+		color: var(--text-base);
+		font-family: var(--font-body);
+		line-height: 1.65;
+		transition:
+			background 0.3s ease,
+			color 0.3s ease;
+	}
+
+	code,
+	pre {
+		font-family: var(--font-code);
+		font-size: 0.95rem;
+		font-feature-settings: "liga" 0;
+	}
+
+	a {
+		color: var(--accent);
+		text-decoration: none;
+	}
+
+	a:hover,
+	a:focus-visible {
+		text-decoration: underline;
+	}
+
+	.shell {
+		width: min(1100px, 92vw);
+		margin: 0 auto;
+	}
+
+	.site-header {
+		position: sticky;
+		top: 0;
+		background: color-mix(in srgb, var(--surface-card) 90%, transparent);
+		backdrop-filter: blur(16px);
+		border-bottom: 1px solid var(--border);
+		z-index: 10;
+	}
+
+	.site-header .shell {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 1rem 0;
+		gap: 1rem;
+	}
+
+	.brand {
+		display: inline-flex;
+		color: inherit;
+		text-decoration: none;
+		align-items: center;
+	}
+
+	.brand-lockup {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.35rem 1rem 0.35rem 0.5rem;
+		border-radius: 999px;
+		border: 1px solid transparent;
+		background: color-mix(in srgb, var(--surface-card) 90%, transparent);
+		box-shadow: var(--shadow-soft);
+		transition:
+			transform 0.25s ease,
+			border-color 0.25s ease,
+			box-shadow 0.25s ease;
+	}
+
+	.brand:hover .brand-lockup,
+	.brand:focus-visible .brand-lockup {
+		transform: translateY(-1px);
+		border-color: color-mix(in srgb, var(--accent) 55%, var(--border) 45%);
+		box-shadow: 0 14px 35px rgba(15, 23, 42, 0.2);
+	}
+
+	.brand:focus-visible {
+		outline: none;
+	}
+
+	.brand:focus-visible .brand-lockup {
+		outline: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
+		outline-offset: 4px;
+	}
+
+	.brand-lockup-logo {
+		width: 48px;
+		height: auto;
+		display: block;
+		filter: drop-shadow(0 5px 15px rgba(15, 23, 42, 0.25));
+	}
+
+	.brand-wordmark {
+		display: inline-flex;
+		align-items: center;
+		white-space: nowrap;
+		padding: 0.25rem 0.9rem;
+		border-radius: var(--radius-pill);
+		border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+		background: var(--surface-contrast);
+		font-family: var(
+			--font-heading,
+			"Space Grotesk",
+			"IBM Plex Sans",
+			"Inter",
+			sans-serif
+		);
+		font-size: 1.1rem;
+		text-transform: uppercase;
+		letter-spacing: 0.15em;
+		font-weight: 700;
+		color: var(--text-base);
+		box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+	}
+
+	.nav-row {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.nav-list {
+		list-style: none;
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		padding: 0;
+		margin: 0;
+	}
+
+	.nav-list a {
+		color: var(--text-base);
+		font-weight: 600;
+		padding: 0.4rem 0.75rem;
+		border-radius: 10px;
+	}
+
+	.nav-list a:hover,
+	.nav-list a:focus-visible {
+		background: var(--surface-contrast);
+		text-decoration: none;
+	}
+
+	.header-actions {
+		display: flex;
+		gap: 0.6rem;
+		align-items: center;
+	}
+
+	.pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		padding: 0.45rem 0.85rem;
+		border-radius: var(--radius-pill);
+		border: 1px solid var(--border);
+		background: var(--surface-card);
+		color: var(--text-base);
+		box-shadow: var(--shadow-soft);
+		font-weight: 600;
+		cursor: pointer;
+		transition:
+			transform 0.2s ease,
+			box-shadow 0.2s ease,
+			border-color 0.2s ease;
+	}
+
+		.pill.theme-toggle {
+			background: transparent;
+			border: none;
+			box-shadow: none;
+			gap: 0;
+			padding: 0.35rem;
+			min-width: 42px;
+			min-height: 42px;
+			justify-content: center;
+			transition:
+				transform 0.2s ease,
+				color 0.2s ease;
+		}
+
+		.pill.theme-toggle:focus-visible {
+			outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+			outline-offset: 4px;
+		}
+
+		.pill.theme-toggle:hover {
+			transform: translateY(-1px);
+		}
+
+		.pill.theme-toggle .theme-icon {
+			position: relative;
+			width: 42px;
+			height: 42px;
+			display: grid;
+			place-items: center;
+			color: var(--text-base);
+			font-weight: 800;
+			font-size: 1.6rem;
+			letter-spacing: -0.08em;
+			overflow: hidden;
+		}
+
+		.pill.theme-toggle .glyph {
+			position: absolute;
+			opacity: 0;
+			transform: translateY(10px) scale(0.9);
+			transition:
+				opacity 0.2s ease,
+				transform 0.2s ease;
+		}
+
+		.pill.theme-toggle .sun-glyph {
+			opacity: 0;
+			transform: translateY(10px) scale(0.9);
+			color: transparent;
+			-webkit-text-stroke: 2px color-mix(in srgb, var(--accent) 80%, white 20%);
+			text-shadow: none;
+		}
+
+		.pill.theme-toggle[data-theme-state="dark"] .sun-glyph {
+			opacity: 1;
+			transform: translateY(0) scale(1.1);
+		}
+
+		.pill.theme-toggle .moon-glyph {
+			opacity: 1;
+			transform: translateY(0) scale(1.1);
+			color: color-mix(in srgb, var(--accent-2) 70%, var(--text-base) 30%);
+			transform-origin: center;
+			font-weight: 900;
+			-webkit-text-stroke: 1px color-mix(in srgb, var(--accent-2) 80%, var(--text-base) 20%);
+		}
+
+		.pill.theme-toggle[data-theme-state="dark"] .moon-glyph {
+			opacity: 0;
+			transform: translateY(-10px) scale(0.9);
+		}
+
+		.pill.theme-toggle:hover .moon-glyph,
+		.pill.theme-toggle:focus-visible .moon-glyph {
+			color: color-mix(in srgb, var(--accent) 85%, var(--text-base) 15%);
+		}
+
+		.pill.theme-toggle[data-theme-state="dark"]:hover .sun-glyph,
+		.pill.theme-toggle[data-theme-state="dark"]:focus-visible .sun-glyph {
+			-webkit-text-stroke: 2px color-mix(in srgb, var(--accent) 100%, white 25%);
+			text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 45%, transparent);
+		}
+	}
+
+	.pill.subtle {
+		box-shadow: none;
+	}
+
+	.pill:hover,
+	.pill:focus-visible {
+		transform: translateY(-1px);
+		border-color: var(--accent);
+		box-shadow: var(--shadow-card);
+		text-decoration: none;
+	}
+
+	.pill .icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.95rem;
+	}
+
+		@media (prefers-reduced-motion: reduce) {
+			.pill.theme-toggle .glyph {
+				transition: none;
+			}
+		}
+
+	main.shell {
+		flex: 1 0 auto;
+		padding: 2.5rem 0 3.5rem;
+	}
+
+	.site-footer {
+		margin-top: auto;
+		background: linear-gradient(
+			180deg,
+			var(--footer-bg-1) 0%,
+			var(--footer-bg-2) 55%,
+			var(--footer-bg-3) 100%
+		);
+		color: var(--footer-text);
+		box-shadow: 0 -10px 35px rgba(173, 169, 169, 0.28);
+		padding-bottom: 2rem;
+	}
+
+	.footer-divider {
+		height: 1px;
+		background: linear-gradient(
+			90deg,
+			color-mix(in srgb, var(--footer-text) 0%, transparent) 0%,
+			color-mix(in srgb, var(--footer-text) 30%, transparent) 40%,
+			color-mix(in srgb, var(--footer-text) 30%, transparent) 60%,
+			color-mix(in srgb, var(--footer-text) 0%, transparent) 100%
+		);
+	}
+
+	.footer-inner {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1.5rem;
+		padding: 2.5rem 0 1rem;
+		text-align: center;
+	}
+
+	.footer-socials {
+		list-style: none;
+		display: flex;
+		gap: 1rem;
+		padding: 0;
+		margin: 0;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.footer-social-link {
+		display: inline-flex;
+		justify-content: center;
+		align-items: center;
+		width: 44px;
+		height: 44px;
+		border-radius: 999px;
+		border: 1px solid var(--footer-pill-border);
+		background: var(--footer-pill-bg);
+		color: var(--footer-pill-text);
+		transition:
+			background 0.2s ease,
+			color 0.2s ease,
+			border-color 0.2s ease,
+			transform 0.2s ease;
+		box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
+	}
+
+	.footer-social-link svg {
+		width: 22px;
+		height: 22px;
+	}
+
+	.footer-social-link.is-mail {
+		padding: 0 1.2rem;
+		width: auto;
+		gap: 0.6rem;
+		height: 44px;
+		border-color: var(--footer-mail-border);
+		background: var(--footer-mail-bg);
+		color: var(--footer-pill-text);
+		font-size: 0.9rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
+	.footer-social-link:hover,
+	.footer-social-link:focus-visible {
+		background: var(--footer-pill-bg-hover);
+		color: var(--text-base);
+		border-color: color-mix(
+			in srgb,
+			var(--footer-pill-border) 50%,
+			var(--text-base) 50%
+		);
+		transform: translateY(-2px);
+		text-decoration: none;
+	}
+
+	.footer-social-link.is-mail:hover,
+	.footer-social-link.is-mail:focus-visible {
+		background: var(--footer-mail-bg-hover);
+	}
+
+	.footer-meta {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.35rem;
+		font-size: 0.82rem;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--footer-muted);
+	}
+
+	.footer-meta span {
+		display: inline-flex;
+		align-items: center;
+	}
+
+	.footer-meta-year {
+		color: var(--footer-text);
+		font-weight: 600;
+	}
+
+	.footer-meta-separator {
+		display: none;
+		padding: 0 0.75rem;
+		color: rgba(247, 250, 255, 0.4);
+	}
+
+	.footer-meta-rights {
+		color: var(--footer-text);
+		font-weight: 600;
+		letter-spacing: 0.12em;
+	}
+
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	@media (min-width: 640px) {
+		.footer-inner {
+			flex-direction: row-reverse;
+			justify-content: space-between;
+			text-align: left;
+		}
+
+		.footer-socials {
+			justify-content: flex-end;
+		}
+
+		.footer-meta {
+			flex-direction: row;
+			align-items: center;
+			gap: 0.75rem;
+		}
+
+		.footer-meta-separator {
+			display: inline-flex;
+		}
+	}
+
+	@media (max-width: 800px) {
+		.site-header .shell {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		.nav-row {
+			width: 100%;
+			justify-content: space-between;
+			flex-wrap: wrap;
+		}
+
+		.nav-list {
+			flex-wrap: wrap;
+		}
+	}
+</style>
