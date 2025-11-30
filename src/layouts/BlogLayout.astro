@@ -2,6 +2,7 @@
 import "@fontsource-variable/inter";
 import "@fontsource-variable/space-grotesk";
 import "@fontsource-variable/jetbrains-mono";
+import randomArticleScript from "../scripts/random-article.js?url";
 import type { Dictionary, Locale } from "../utils/i18n";
 
 interface Props {
@@ -102,6 +103,7 @@ const socialLinks: SocialLink[] = [
 const shouldOpenInNewTab = (href: string) => href.startsWith("http");
 const footerRights = dictionary.footer?.rights ?? "All rights reserved.";
 const currentYear = new Date().getFullYear();
+const randomArticleLabel = dictionary.randomArticleModal?.label ?? "Choosing a random article";
 ---
 
 <!doctype html>
@@ -115,10 +117,10 @@ const currentYear = new Date().getFullYear();
 		<script is:inline set:html={themeScript} />
 		<slot name="head" />
 	</head>
-	<body class="site-shell">
+	<body class="site-shell" data-site-base={base}>
 		<header class="site-header">
 			<div class="shell">
-				<a class="brand" href={buildHref("/")}>
+				<a class="brand" href={buildHref("/")} data-random-article-trigger>
 					<span class="brand-lockup">
 						<img
 							class="brand-lockup-logo"
@@ -231,6 +233,21 @@ const currentYear = new Date().getFullYear();
 				</div>
 			</div>
 		</footer>
+		<div class="random-article-modal" data-random-modal hidden role="status" aria-live="polite">
+			<div class="random-article-modal__backdrop" aria-hidden="true">
+				<span class="random-article-modal__ribbon"></span>
+				<span class="random-article-modal__ribbon"></span>
+				<span class="random-article-modal__particles random-article-modal__particles--slow"></span>
+				<span class="random-article-modal__particles random-article-modal__particles--fast"></span>
+			</div>
+			<div class="random-article-modal__content">
+				<div class="random-article-modal__logo">
+					<img src="/logo.svg" alt="Turtleand" loading="lazy" decoding="async" />
+				</div>
+				<p class="random-article-modal__label">{randomArticleLabel}</p>
+				</div>
+			</div>
+		<script type="module" src={randomArticleScript}></script>
 	</body>
 </html>
 
@@ -396,6 +413,246 @@ const currentYear = new Date().getFullYear();
 		height: auto;
 		display: block;
 		filter: drop-shadow(0 5px 15px rgba(15, 23, 42, 0.25));
+	}
+
+	body.random-article-modal-open {
+		overflow: hidden;
+	}
+
+	.random-article-modal {
+		position: fixed;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: clamp(1rem, 4vw, 2.5rem);
+		background: color-mix(in srgb, var(--page-bg) 88%, transparent);
+		backdrop-filter: blur(14px);
+		opacity: 0;
+		pointer-events: none;
+		transform: scale(0.97);
+		transition:
+			opacity 0.35s ease,
+			transform 0.35s ease;
+		z-index: 999;
+	}
+
+	.random-article-modal--visible {
+		opacity: 1;
+		pointer-events: auto;
+		transform: scale(1);
+	}
+
+	.random-article-modal__backdrop {
+		position: absolute;
+		inset: 0;
+		overflow: hidden;
+		background: radial-gradient(circle at center, color-mix(in srgb, var(--surface-card) 85%, transparent) 0%, transparent 55%);
+	}
+
+	.random-article-modal__ribbon {
+		position: absolute;
+		inset: -20% -30%;
+		background: linear-gradient(
+			120deg,
+			color-mix(in srgb, var(--accent) 45%, transparent),
+			color-mix(in srgb, var(--accent-2) 30%, transparent)
+		);
+		opacity: 0.35;
+		filter: blur(6px);
+		mix-blend-mode: screen;
+		animation: randomArticleRibbonDrift 16s ease-in-out infinite;
+	}
+
+	.random-article-modal__ribbon:nth-child(2) {
+		inset: -30% -25%;
+		background: linear-gradient(
+			140deg,
+			color-mix(in srgb, var(--accent-2) 40%, transparent),
+			color-mix(in srgb, var(--accent) 30%, transparent)
+		);
+		opacity: 0.45;
+		animation: randomArticleRibbonDriftAlt 22s ease-in-out infinite;
+	}
+
+	.random-article-modal__particles {
+		position: absolute;
+		inset: -15% 0;
+		background-image:
+			radial-gradient(circle, color-mix(in srgb, var(--accent) 25%, transparent) 0%, transparent 60%),
+			radial-gradient(circle, color-mix(in srgb, var(--accent-2) 25%, transparent) 0%, transparent 65%),
+			radial-gradient(circle, color-mix(in srgb, var(--accent) 20%, transparent) 0%, transparent 55%);
+		background-size: 160px 280px, 220px 360px, 180px 320px;
+		background-position: 0 0, 50% 40%, 20% 80%;
+		opacity: 0.25;
+		mix-blend-mode: screen;
+		filter: blur(0.5px);
+		animation: randomArticleParticleDrift 18s linear infinite;
+	}
+
+	.random-article-modal__particles--fast {
+		animation-duration: 12s;
+		opacity: 0.35;
+	}
+
+	.random-article-modal__content {
+		position: relative;
+		background: linear-gradient(160deg, color-mix(in srgb, var(--surface-card) 96%, transparent), color-mix(in srgb, var(--surface-contrast) 65%, transparent));
+		border-radius: 48px;
+		padding: clamp(3rem, 5vw, 4.5rem);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 2.25rem;
+		box-shadow: 0 45px 90px rgba(15, 23, 42, 0.35);
+		border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+		min-width: min(96vw, 640px);
+		min-height: clamp(380px, 60vh, 520px);
+		z-index: 1;
+		margin: auto;
+	}
+
+	.random-article-modal__content::before {
+		content: "";
+		position: absolute;
+		inset: 12%;
+		border-radius: 40px;
+		background: radial-gradient(circle, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%);
+		opacity: 0.25;
+		filter: blur(10px);
+	}
+
+	.random-article-modal__logo {
+		width: clamp(140px, 18vw, 180px);
+		height: clamp(140px, 18vw, 180px);
+		display: grid;
+		place-items: center;
+		border-radius: 40px;
+		background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 85%, white 15%), color-mix(in srgb, var(--accent-2) 85%, white 10%));
+		box-shadow:
+			0 35px 70px rgba(15, 23, 42, 0.35),
+			0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
+		position: relative;
+		z-index: 1;
+		overflow: visible;
+	}
+
+	.random-article-modal__logo::before,
+	.random-article-modal__logo::after {
+		content: "";
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: clamp(14px, 1.8vw, 20px);
+		height: clamp(14px, 1.8vw, 20px);
+		border-radius: 999px;
+		transform-origin: center;
+		pointer-events: none;
+		mix-blend-mode: screen;
+		box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 40%, transparent);
+		z-index: 0;
+	}
+
+	.random-article-modal__logo::before {
+		--orbit-radius: clamp(110px, 16vw, 150px);
+		background: color-mix(in srgb, var(--accent) 90%, white 10%);
+		animation: randomArticleOrbitA 5.5s cubic-bezier(0.6, 0, 0.4, 1) infinite;
+	}
+
+	.random-article-modal__logo::after {
+		--orbit-radius: clamp(90px, 13vw, 120px);
+		background: color-mix(in srgb, var(--accent-2) 85%, white 5%);
+		animation: randomArticleOrbitB 4s cubic-bezier(0.6, 0, 0.4, 1) infinite;
+		box-shadow: 0 0 16px color-mix(in srgb, var(--accent-2) 45%, transparent);
+	}
+
+	.random-article-modal__logo img {
+		position: relative;
+		z-index: 2;
+		width: clamp(90px, 12vw, 120px);
+		height: auto;
+	}
+
+	.random-article-modal__label {
+		margin: 0;
+		font-size: clamp(1.6rem, 4vw, 2.2rem);
+		font-family: var(--font-heading);
+		color: var(--text-base);
+		text-align: center;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		position: relative;
+		z-index: 1;
+	}
+
+	@keyframes randomArticleRibbonDrift {
+		0% {
+			transform: translateX(-10%) translateY(-10%) rotate(18deg);
+		}
+		50% {
+			transform: translateX(8%) translateY(5%) rotate(20deg);
+		}
+		100% {
+			transform: translateX(-10%) translateY(-10%) rotate(18deg);
+		}
+	}
+
+	@keyframes randomArticleRibbonDriftAlt {
+		0% {
+			transform: translateX(12%) translateY(-15%) rotate(32deg);
+		}
+		50% {
+			transform: translateX(-5%) translateY(10%) rotate(28deg);
+		}
+		100% {
+			transform: translateX(12%) translateY(-15%) rotate(32deg);
+		}
+	}
+
+	@keyframes randomArticleOrbitA {
+		0% {
+			transform: translate(-50%, -50%) rotate(0deg) translateX(var(--orbit-radius)) scale(0.85);
+		}
+		50% {
+			transform: translate(-50%, -50%) rotate(180deg) translateX(var(--orbit-radius)) scale(1);
+		}
+		100% {
+			transform: translate(-50%, -50%) rotate(360deg) translateX(var(--orbit-radius)) scale(0.85);
+		}
+	}
+
+	@keyframes randomArticleParticleDrift {
+		0% {
+			transform: translateY(10%);
+			background-position: 0 0, 50% 40%, 20% 80%;
+		}
+		50% {
+			background-position: 20% 30%, 30% 60%, 40% 10%;
+		}
+		100% {
+			transform: translateY(-10%);
+			background-position: 0 80%, 60% 20%, 10% 40%;
+		}
+	}
+
+	@keyframes randomArticleOrbitB {
+		0% {
+			transform: translate(-50%, -50%) rotate(0deg) translateX(var(--orbit-radius)) scale(0.9);
+		}
+		50% {
+			transform: translate(-50%, -50%) rotate(180deg) translateX(var(--orbit-radius)) scale(1.05);
+		}
+		100% {
+			transform: translate(-50%, -50%) rotate(360deg) translateX(var(--orbit-radius)) scale(0.9);
+		}
+	}
+
+	@media (max-width: 600px) {
+		.random-article-modal__content {
+			min-width: 100%;
+			border-radius: 32px;
+		}
 	}
 
 	.brand-wordmark {

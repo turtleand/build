@@ -10,6 +10,8 @@ export const filterPublished = (post: PostEntry) => !post.data.draft;
 
 export const filterByLocale = (locale: Locale) => (post: PostEntry) => post.data.locale === locale;
 
+export const excludeResearchNotes = (post: PostEntry) => !post.data.isResearchNotes;
+
 export const sortPosts = (posts: PostEntry[]) => [...posts].sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 
 export const getPostSlug = (post: PostEntry) => post.data.slug?.trim() || post.slug;

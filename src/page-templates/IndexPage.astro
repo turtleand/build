@@ -2,10 +2,10 @@
 import { getCollection } from 'astro:content';
 import BlogLayout from '../layouts/BlogLayout.astro';
 import PostCard from '../components/PostCard.astro';
-import { POSTS_PER_PAGE, filterByLocale, filterPublished, formatDate, getPostSlug, sortPosts } from '../utils/blog';
+import { POSTS_PER_PAGE, excludeResearchNotes, filterByLocale, filterPublished, formatDate, getPostSlug, sortPosts } from '../utils/blog';
 import type { Locale } from '../utils/i18n';
 import { getDictionary, otherLocale } from '../utils/i18n';
-import homeSearchScript from '../scripts/home-search.ts?url';
+import homeSearchScript from '../scripts/home-search.js?url';
 
 interface Props {
 	locale: Locale;
@@ -14,7 +14,8 @@ interface Props {
 
 const { locale, basePath = '' } = Astro.props as Props;
 const dictionary = getDictionary(locale);
-const posts = sortPosts((await getCollection('posts')).filter(filterPublished).filter(filterByLocale(locale)));
+const allPosts = sortPosts((await getCollection('posts')).filter(filterPublished).filter(filterByLocale(locale)));
+const posts = allPosts.filter(excludeResearchNotes);
 const featuredPosts = posts.filter((post) => post.data.featured);
 const paginatedPosts = posts.slice(0, POSTS_PER_PAGE);
 const totalPages = Math.max(1, Math.ceil(posts.length / POSTS_PER_PAGE));
@@ -143,6 +144,7 @@ const searchConfigScript = escapeForScript({
 		</template>
 	))}
 </div>
+<script src="/vendor/fuse.min.js" is:inline></script>
 <script type="module" src={homeSearchScript}></script>
 
 <style>

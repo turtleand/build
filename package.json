@@ -3,8 +3,8 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
+    "dev": "node scripts/snippet-sync.mjs --watch & astro dev",
+    "build": "node scripts/snippet-sync.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "test": "playwright test",

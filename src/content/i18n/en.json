@@ -24,6 +24,9 @@
       "dark": "Dark"
     }
   },
+  "randomArticleModal": {
+    "label": "Picking an article..."
+  },
   "hero": {
     "title": "Where builders and ideas ship together",
     "subtitle": "Release notes, patterns, and thinking from the Turtleand build track.",
@@ -61,6 +64,12 @@
     "publishedOn": "Published",
     "tagsLabel": "Tags",
     "translatedLabel": "View this post in",
+    "researchNotes": {
+      "heading": "Research Notes",
+      "summary": "Expand to read the full research notes, references, and comparisons gathered for this topic.",
+      "openLabel": "Open Research Notes",
+      "collapseLabel": "Collapse Research Notes"
+    },
     "timeline": {
       "label": "Timeline",
       "jumpLabel": "Jump between sections",

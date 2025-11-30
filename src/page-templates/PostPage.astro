@@ -1,7 +1,7 @@
 ---
 import BlogLayout from "../layouts/BlogLayout.astro";
 import type { PostEntry } from "../utils/blog";
-import { formatDate, getTagSlug } from "../utils/blog";
+import { formatDate, getPostSlug, getTagSlug } from "../utils/blog";
 import type { Locale } from "../utils/i18n";
 import { getDictionary, otherLocale } from "../utils/i18n";
 
@@ -10,9 +10,10 @@ interface Props {
 	locale: Locale;
 	basePath?: string;
 	alternateHref?: string;
+	researchNotesPost?: PostEntry | null;
 }
 
-const { post, locale, basePath = "", alternateHref } = Astro.props as Props;
+const { post, locale, basePath = "", alternateHref, researchNotesPost = null } = Astro.props as Props;
 const { Content, headings = [] } = await post.render();
 const timelineHeadings = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
 const hasTimeline = timelineHeadings.length > 0;
@@ -20,6 +21,10 @@ const dictionary = getDictionary(locale);
 const altLocale = otherLocale(locale);
 const alternateLabel = dictionary.navigation.locales[altLocale].label;
 const canonical = Astro.url?.href;
+const buildHref = (path: string) => {
+	const normalized = path.startsWith("/") ? path : `/${path}`;
+	return `${basePath}${normalized}`.replace(/\/{2,}/g, "/");
+};
 const timelineCopy = {
 	label: dictionary.postPage.timeline?.label ?? "Timeline",
 	jumpLabel: dictionary.postPage.timeline?.jumpLabel ?? "Jump between sections",
@@ -68,6 +73,78 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 `
 	: "";
+const showResearchNotesInline = Boolean(researchNotesPost && !post.data.isResearchNotes);
+const researchNotesRendered = showResearchNotesInline && researchNotesPost ? await researchNotesPost.render() : null;
+const ResearchNotesContent = researchNotesRendered?.Content;
+const researchNotesSectionId = showResearchNotesInline ? `research-notes-${post.slug.replace(/[^a-z0-9-]/gi, "-")}` : "";
+const researchNotesPanelId = showResearchNotesInline ? `${researchNotesSectionId}-panel` : "";
+const researchNotesSlug =
+	showResearchNotesInline && researchNotesPost ? getPostSlug(researchNotesPost) : null;
+const researchNotesHref = showResearchNotesInline && researchNotesSlug ? buildHref(`/blog/${researchNotesSlug}`) : null;
+const researchNotesCopy = {
+	heading: dictionary.postPage.researchNotes?.heading ?? "Research Notes",
+	summary:
+		dictionary.postPage.researchNotes?.summary ??
+		"Expand to read the full research notes, references, and comparisons gathered for this topic.",
+	openLabel: dictionary.postPage.researchNotes?.openLabel ?? "Open Research Notes",
+	collapseLabel: dictionary.postPage.researchNotes?.collapseLabel ?? "Collapse Research Notes",
+};
+const researchNotesScript = showResearchNotesInline
+	? `
+document.addEventListener('DOMContentLoaded', () => {
+  const section = document.getElementById(${JSON.stringify(researchNotesSectionId)});
+  const panel = document.getElementById(${JSON.stringify(researchNotesPanelId)});
+  if (!section || !panel) return;
+  const toggle = section.querySelector('[data-research-notes-toggle]');
+  if (!toggle) return;
+  const inlineLinks = Array.from(document.querySelectorAll('a[href=${JSON.stringify(researchNotesHref ?? "")}]'));
+
+  const syncLabel = (expanded) => {
+    toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    const label = expanded
+      ? toggle.getAttribute('data-close-label')
+      : toggle.getAttribute('data-open-label');
+    if (label) {
+      toggle.textContent = label;
+    }
+  };
+
+  const open = () => {
+    panel.hidden = false;
+    section.classList.add('is-open');
+    syncLabel(true);
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const close = (scroll = true) => {
+    panel.hidden = true;
+    section.classList.remove('is-open');
+    syncLabel(false);
+    if (scroll) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  toggle.addEventListener('click', () => {
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    if (expanded) {
+      close(true);
+    } else {
+      open();
+    }
+  });
+
+  inlineLinks.forEach((anchor) => {
+    anchor.addEventListener('click', (event) => {
+      event.preventDefault();
+      open();
+    });
+  });
+
+  syncLabel(false);
+});
+`
+	: "";
 ---
 
 <BlogLayout
@@ -83,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		{canonical && <link rel="canonical" href={canonical} />}
 	</Fragment>
 	{hasTimeline && <script is:inline set:html={timelineToggleScript} />}
+	{researchNotesScript && <script is:inline set:html={researchNotesScript} />}
 	<div class={`post-layout${hasTimeline ? " has-timeline" : ""}`}>
 		{hasTimeline && (
 			<aside
@@ -157,6 +235,36 @@ document.addEventListener('DOMContentLoaded', () => {
 				<div class="content">
 					<Content />
 				</div>
+				{
+					showResearchNotesInline && researchNotesHref && ResearchNotesContent && (
+						<section class="research-notes-shell" id={researchNotesSectionId} data-research-notes-section>
+							<div class="research-notes-cta">
+								<div class="research-notes-copy">
+									<h2>{researchNotesCopy.heading}</h2>
+									<p>{researchNotesCopy.summary}</p>
+								</div>
+								<div class="research-notes-actions">
+									<button
+										type="button"
+										class="pill primary"
+										data-research-notes-toggle
+										data-open-label={researchNotesCopy.openLabel}
+										data-close-label={researchNotesCopy.collapseLabel}
+										aria-expanded="false"
+										aria-controls={researchNotesPanelId}
+									>
+										{researchNotesCopy.openLabel}
+									</button>
+								</div>
+							</div>
+							<div class="research-notes-panel" id={researchNotesPanelId} hidden>
+								<div class="research-notes-body">
+									<ResearchNotesContent />
+								</div>
+							</div>
+						</section>
+					)
+				}
 			</article>
 		</div>
 	</div>
@@ -227,6 +335,93 @@ document.addEventListener('DOMContentLoaded', () => {
 		display: flex;
 		gap: 0.5rem;
 		flex-wrap: wrap;
+	}
+
+	.research-notes-shell {
+		margin: 1.75rem 0 2.25rem;
+		padding: 1.5rem;
+		border-radius: 20px;
+		border: 1px solid var(--border);
+		background: color-mix(in srgb, var(--surface-card) 92%, var(--surface-contrast) 8%);
+		box-shadow: var(--shadow-soft);
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+		scroll-margin-top: 4rem;
+	}
+
+	.research-notes-shell.is-open {
+		border-color: var(--accent);
+	}
+
+	.research-notes-cta {
+		display: flex;
+		gap: 1.5rem;
+		align-items: flex-start;
+		justify-content: space-between;
+		flex-wrap: wrap;
+	}
+
+	.research-notes-copy {
+		flex: 1;
+		min-width: 240px;
+	}
+
+	.research-notes-actions {
+		display: flex;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+	}
+
+	.research-notes-shell .pill.primary {
+		background: var(--accent);
+		color: var(--on-accent, #ffffff);
+		border-color: var(--accent);
+	}
+
+	.research-notes-shell .pill.primary:hover,
+	.research-notes-shell .pill.primary:focus-visible {
+		box-shadow: var(--shadow-soft);
+	}
+
+	.research-notes-panel {
+		border-top: 1px solid var(--border);
+		padding-top: 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		max-height: 70vh;
+		position: relative;
+	}
+
+	.research-notes-panel[hidden] {
+		display: none;
+	}
+
+	.research-notes-body {
+		flex: 1;
+		min-height: 0;
+		overflow-y: auto;
+		padding-right: 0.25rem;
+	}
+
+	.research-notes-body :global(p) {
+		font-size: 0.97rem;
+	}
+
+	@media (max-width: 720px) {
+		.research-notes-cta {
+			flex-direction: column;
+		}
+
+		.research-notes-actions {
+			justify-content: flex-start;
+		}
+
+		.research-notes-panel {
+			max-height: none;
+		}
 	}
 
 	.tags a {

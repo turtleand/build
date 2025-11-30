@@ -37,3 +37,5 @@ coverage/
 test-results/
 
 pending_notifications.txt
+
+*.pyc

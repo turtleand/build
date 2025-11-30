@@ -24,6 +24,9 @@
       "dark": "Oscuro"
     }
   },
+  "randomArticleModal": {
+    "label": "Eligiendo un artículo..."
+  },
   "hero": {
     "title": "Donde las ideas y quienes construyen avanzan juntas",
     "subtitle": "Notas de lanzamiento, patrones y pensamiento del track de build en Turtleand.",
@@ -61,6 +64,12 @@
     "publishedOn": "Publicado",
     "tagsLabel": "Etiquetas",
     "translatedLabel": "Ver esta publicación en",
+    "researchNotes": {
+      "heading": "Research Notes",
+      "summary": "Despliega para leer las notas de investigación, referencias y comparaciones reunidas para este tema.",
+      "openLabel": "Abrir Research Notes",
+      "collapseLabel": "Cerrar Research Notes"
+    },
     "timeline": {
       "label": "Cronología",
       "jumpLabel": "Saltar entre secciones",
