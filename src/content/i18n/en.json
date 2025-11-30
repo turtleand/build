@@ -64,14 +64,11 @@
     "publishedOn": "Published",
     "tagsLabel": "Tags",
     "translatedLabel": "View this post in",
-    "deepSearch": {
-      "heading": "Deep Search",
+    "researchNotes": {
+      "heading": "Research Notes",
       "summary": "Expand to read the full research notes, references, and comparisons gathered for this topic.",
-      "openLabel": "Open Deep Search",
-      "collapseLabel": "Collapse Deep Search",
-      "openNewTab": "Open full post",
-      "backToSummary": "Back to summary",
-      "badge": "Research companion"
+      "openLabel": "Open Research Notes",
+      "collapseLabel": "Collapse Research Notes"
     },
     "timeline": {
       "label": "Timeline",

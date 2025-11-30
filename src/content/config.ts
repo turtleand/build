@@ -12,7 +12,7 @@ const posts = defineCollection({
     slug: z.string().optional(),
     locale: z.enum(['en', 'es']).default('en'),
     translationKey: z.string().optional(),
-    isDeepSearch: z.boolean().default(false),
+    isResearchNotes: z.boolean().default(false),
   }),
 });
 

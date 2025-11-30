@@ -10,10 +10,10 @@ interface Props {
 	locale: Locale;
 	basePath?: string;
 	alternateHref?: string;
-	deepSearchPost?: PostEntry | null;
+	researchNotesPost?: PostEntry | null;
 }
 
-const { post, locale, basePath = "", alternateHref, deepSearchPost = null } = Astro.props as Props;
+const { post, locale, basePath = "", alternateHref, researchNotesPost = null } = Astro.props as Props;
 const { Content, headings = [] } = await post.render();
 const timelineHeadings = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
 const hasTimeline = timelineHeadings.length > 0;
@@ -73,36 +73,31 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 `
 	: "";
-const showDeepSearchInline = Boolean(deepSearchPost && !post.data.isDeepSearch);
-const deepSearchRendered = showDeepSearchInline && deepSearchPost ? await deepSearchPost.render() : null;
-const DeepSearchContent = deepSearchRendered?.Content;
-const deepSearchSectionId = showDeepSearchInline ? `deep-search-${post.slug.replace(/[^a-z0-9-]/gi, "-")}` : "";
-const deepSearchPanelId = showDeepSearchInline ? `${deepSearchSectionId}-panel` : "";
-const deepSearchSlug =
-	showDeepSearchInline && deepSearchPost ? getPostSlug(deepSearchPost) : null;
-const deepSearchHref = showDeepSearchInline && deepSearchSlug ? buildHref(`/blog/${deepSearchSlug}`) : null;
-const deepSearchCopy = {
-	heading: dictionary.postPage.deepSearch?.heading ?? "Deep Search",
+const showResearchNotesInline = Boolean(researchNotesPost && !post.data.isResearchNotes);
+const researchNotesRendered = showResearchNotesInline && researchNotesPost ? await researchNotesPost.render() : null;
+const ResearchNotesContent = researchNotesRendered?.Content;
+const researchNotesSectionId = showResearchNotesInline ? `research-notes-${post.slug.replace(/[^a-z0-9-]/gi, "-")}` : "";
+const researchNotesPanelId = showResearchNotesInline ? `${researchNotesSectionId}-panel` : "";
+const researchNotesSlug =
+	showResearchNotesInline && researchNotesPost ? getPostSlug(researchNotesPost) : null;
+const researchNotesHref = showResearchNotesInline && researchNotesSlug ? buildHref(`/blog/${researchNotesSlug}`) : null;
+const researchNotesCopy = {
+	heading: dictionary.postPage.researchNotes?.heading ?? "Research Notes",
 	summary:
-		dictionary.postPage.deepSearch?.summary ??
+		dictionary.postPage.researchNotes?.summary ??
 		"Expand to read the full research notes, references, and comparisons gathered for this topic.",
-	openLabel: dictionary.postPage.deepSearch?.openLabel ?? "Open Deep Search",
-	collapseLabel: dictionary.postPage.deepSearch?.collapseLabel ?? "Collapse Deep Search",
-	openNewTab: dictionary.postPage.deepSearch?.openNewTab ?? "Open full post",
-	backToSummary: dictionary.postPage.deepSearch?.backToSummary ?? "Back to summary",
-	badge: dictionary.postPage.deepSearch?.badge ?? "Research companion",
+	openLabel: dictionary.postPage.researchNotes?.openLabel ?? "Open Research Notes",
+	collapseLabel: dictionary.postPage.researchNotes?.collapseLabel ?? "Collapse Research Notes",
 };
-const deepSearchScript = showDeepSearchInline
+const researchNotesScript = showResearchNotesInline
 	? `
 document.addEventListener('DOMContentLoaded', () => {
-  const section = document.getElementById(${JSON.stringify(deepSearchSectionId)});
-  const panel = document.getElementById(${JSON.stringify(deepSearchPanelId)});
+  const section = document.getElementById(${JSON.stringify(researchNotesSectionId)});
+  const panel = document.getElementById(${JSON.stringify(researchNotesPanelId)});
   if (!section || !panel) return;
-  const toggle = section.querySelector('[data-deep-search-toggle]');
+  const toggle = section.querySelector('[data-research-notes-toggle]');
   if (!toggle) return;
-  const collapseButtons = Array.from(section.querySelectorAll('[data-deep-search-collapse]'));
-  const backButton = section.querySelector('[data-deep-search-back]');
-  const inlineLinks = Array.from(document.querySelectorAll('a[href=${JSON.stringify(deepSearchHref ?? "")}]'));
+  const inlineLinks = Array.from(document.querySelectorAll('a[href=${JSON.stringify(researchNotesHref ?? "")}]'));
 
   const syncLabel = (expanded) => {
     toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
@@ -139,11 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  collapseButtons.forEach((btn) => btn.addEventListener('click', () => close(true)));
-  if (backButton) {
-    backButton.addEventListener('click', () => close(true));
-  }
-
   inlineLinks.forEach((anchor) => {
     anchor.addEventListener('click', (event) => {
       event.preventDefault();
@@ -170,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		{canonical && <link rel="canonical" href={canonical} />}
 	</Fragment>
 	{hasTimeline && <script is:inline set:html={timelineToggleScript} />}
-	{deepSearchScript && <script is:inline set:html={deepSearchScript} />}
+	{researchNotesScript && <script is:inline set:html={researchNotesScript} />}
 	<div class={`post-layout${hasTimeline ? " has-timeline" : ""}`}>
 		{hasTimeline && (
 			<aside
@@ -246,45 +236,30 @@ document.addEventListener('DOMContentLoaded', () => {
 					<Content />
 				</div>
 				{
-					showDeepSearchInline && deepSearchHref && DeepSearchContent && (
-						<section class="deep-search-shell" id={deepSearchSectionId} data-deep-search-section>
-							<div class="deep-search-cta">
-								<div class="deep-search-copy">
-									<span class="badge">{deepSearchCopy.badge}</span>
-									<h2>{deepSearchCopy.heading}</h2>
-									<p>{deepSearchCopy.summary}</p>
+					showResearchNotesInline && researchNotesHref && ResearchNotesContent && (
+						<section class="research-notes-shell" id={researchNotesSectionId} data-research-notes-section>
+							<div class="research-notes-cta">
+								<div class="research-notes-copy">
+									<h2>{researchNotesCopy.heading}</h2>
+									<p>{researchNotesCopy.summary}</p>
 								</div>
-								<div class="deep-search-actions">
+								<div class="research-notes-actions">
 									<button
 										type="button"
 										class="pill primary"
-										data-deep-search-toggle
-										data-open-label={deepSearchCopy.openLabel}
-										data-close-label={deepSearchCopy.collapseLabel}
+										data-research-notes-toggle
+										data-open-label={researchNotesCopy.openLabel}
+										data-close-label={researchNotesCopy.collapseLabel}
 										aria-expanded="false"
-										aria-controls={deepSearchPanelId}
+										aria-controls={researchNotesPanelId}
 									>
-										{deepSearchCopy.openLabel}
+										{researchNotesCopy.openLabel}
 									</button>
-									<a class="pill link" href={deepSearchHref} target="_blank" rel="noreferrer">
-										{deepSearchCopy.openNewTab}
-									</a>
 								</div>
 							</div>
-							<div class="deep-search-panel" id={deepSearchPanelId} hidden>
-								<div class="panel-controls">
-									<button type="button" class="pill subtle" data-deep-search-collapse>
-										{deepSearchCopy.collapseLabel}
-									</button>
-									<a class="pill link" href={deepSearchHref} target="_blank" rel="noreferrer">
-										{deepSearchCopy.openNewTab}
-									</a>
-									<button type="button" class="pill ghost" data-deep-search-back>
-										{deepSearchCopy.backToSummary}
-									</button>
-								</div>
-								<div class="deep-search-body">
-									<DeepSearchContent />
+							<div class="research-notes-panel" id={researchNotesPanelId} hidden>
+								<div class="research-notes-body">
+									<ResearchNotesContent />
 								</div>
 							</div>
 						</section>
@@ -362,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		flex-wrap: wrap;
 	}
 
-	.deep-search-shell {
+	.research-notes-shell {
 		margin: 1.75rem 0 2.25rem;
 		padding: 1.5rem;
 		border-radius: 20px;
@@ -375,11 +350,11 @@ document.addEventListener('DOMContentLoaded', () => {
 		scroll-margin-top: 4rem;
 	}
 
-	.deep-search-shell.is-open {
+	.research-notes-shell.is-open {
 		border-color: var(--accent);
 	}
 
-	.deep-search-cta {
+	.research-notes-cta {
 		display: flex;
 		gap: 1.5rem;
 		align-items: flex-start;
@@ -387,56 +362,30 @@ document.addEventListener('DOMContentLoaded', () => {
 		flex-wrap: wrap;
 	}
 
-	.deep-search-copy {
+	.research-notes-copy {
 		flex: 1;
 		min-width: 240px;
 	}
 
-	.deep-search-copy .badge {
-		display: inline-flex;
-		align-items: center;
-		font-size: 0.75rem;
-		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		color: var(--accent);
-		background: color-mix(in srgb, var(--accent) 12%, transparent);
-		border-radius: var(--radius-pill);
-		padding: 0.15rem 0.75rem;
-		margin-bottom: 0.35rem;
-		font-weight: 600;
-	}
-
-	.deep-search-actions {
+	.research-notes-actions {
 		display: flex;
 		gap: 0.75rem;
 		flex-wrap: wrap;
 		justify-content: flex-end;
 	}
 
-	.deep-search-shell .pill.primary {
+	.research-notes-shell .pill.primary {
 		background: var(--accent);
 		color: var(--on-accent, #ffffff);
 		border-color: var(--accent);
 	}
 
-	.deep-search-shell .pill.primary:hover,
-	.deep-search-shell .pill.primary:focus-visible {
+	.research-notes-shell .pill.primary:hover,
+	.research-notes-shell .pill.primary:focus-visible {
 		box-shadow: var(--shadow-soft);
 	}
 
-	.deep-search-shell .pill.link {
-		border-color: var(--accent);
-		color: var(--accent);
-		background: transparent;
-	}
-
-	.deep-search-shell .pill.ghost {
-		border-color: var(--border);
-		color: var(--text-base);
-		background: transparent;
-	}
-
-	.deep-search-panel {
+	.research-notes-panel {
 		border-top: 1px solid var(--border);
 		padding-top: 1rem;
 		display: flex;
@@ -446,44 +395,31 @@ document.addEventListener('DOMContentLoaded', () => {
 		position: relative;
 	}
 
-	.deep-search-panel[hidden] {
+	.research-notes-panel[hidden] {
 		display: none;
 	}
 
-	.panel-controls {
-		position: sticky;
-		top: 0;
-		display: flex;
-		gap: 0.75rem;
-		flex-wrap: wrap;
-		align-items: center;
-		background: color-mix(in srgb, var(--surface-card) 96%, transparent);
-		border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
-		padding-bottom: 0.65rem;
-		z-index: 1;
-	}
-
-	.deep-search-body {
+	.research-notes-body {
 		flex: 1;
 		min-height: 0;
 		overflow-y: auto;
 		padding-right: 0.25rem;
 	}
 
-	.deep-search-body :global(p) {
+	.research-notes-body :global(p) {
 		font-size: 0.97rem;
 	}
 
 	@media (max-width: 720px) {
-		.deep-search-cta {
+		.research-notes-cta {
 			flex-direction: column;
 		}
 
-		.deep-search-actions {
+		.research-notes-actions {
 			justify-content: flex-start;
 		}
 
-		.deep-search-panel {
+		.research-notes-panel {
 			max-height: none;
 		}
 	}

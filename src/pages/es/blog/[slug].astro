@@ -14,13 +14,13 @@ export async function getStaticPaths() {
 
 	return posts.map((post) => {
 		const translated = findTranslationForLocale(allPosts, post.data.translationKey, 'en');
-		const deepSearch =
-			!post.data.isDeepSearch && post.data.translationKey
+		const researchNotes =
+			!post.data.isResearchNotes && post.data.translationKey
 				? allPosts.find(
 						(candidate) =>
 							candidate.id !== post.id &&
 							candidate.data.locale === locale &&
-							candidate.data.isDeepSearch &&
+							candidate.data.isResearchNotes &&
 							candidate.data.translationKey === post.data.translationKey
 				  )
 				: null;
@@ -29,16 +29,16 @@ export async function getStaticPaths() {
 			props: {
 				post,
 				translatedSlug: translated ? getPostSlug(translated) : null,
-				deepSearchPost: deepSearch ?? null,
+				researchNotesPost: researchNotes ?? null,
 			},
 		};
 	});
 }
 
-const { post, translatedSlug, deepSearchPost } = Astro.props as {
+const { post, translatedSlug, researchNotesPost } = Astro.props as {
 	post: PostEntry;
 	translatedSlug: string | null;
-	deepSearchPost: PostEntry | null;
+	researchNotesPost: PostEntry | null;
 };
 const alternateHref = translatedSlug ? `/blog/${translatedSlug}` : '/';
 ---
@@ -48,5 +48,5 @@ const alternateHref = translatedSlug ? `/blog/${translatedSlug}` : '/';
 	locale={pageLocale}
 	basePath="/es"
 	alternateHref={alternateHref}
-	deepSearchPost={deepSearchPost}
+	researchNotesPost={researchNotesPost}
 />
