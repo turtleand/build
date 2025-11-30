@@ -2,16 +2,14 @@
 
 title: "How does mocker in Python work?"
 description: "How does mocker in Python works under the hood and how to build a tiny version of it yourself."
-date: 2025-11-23
+date: 2025-11-30
 tags: ["python", "mocks"]
 featured: true
 draft: false
 locale: en
 translationKey: python-mocker
 -----------------------------
-<!-- snippet-hash: 263dee524e79f22be78940f7523cd3e515109079 -->
-
-# How does `mocker` in Python work?
+<!-- snippet-hash: a475383814af5277ff29a87f9ef47219d9fcb4df -->
 
 Short answer:
 `mocker` is a **pytest fixture** provided by the [`pytest-mock`](https://github.com/pytest-dev/pytest-mock) plugin.
@@ -26,11 +24,13 @@ It gives you a small object (usually called `mocker`) that wraps Python’s stan
 
 ---
 
-## 2. Why patch “where it is used” instead of “where it is defined”?
+## 1. Code Example
 
-**Rule of thumb:**
+**email_gateway.py**
 
-> Patch the **name visible inside the module under test**, not the original place where the object was first defined.
+```python file=./2025-11-29-mocker-python-misc/email_gateway.py
+```
+
 
 **email_service.py**
 
@@ -39,35 +39,16 @@ It gives you a small object (usually called `mocker`) that wraps Python’s stan
 
 The high-level `notify_user` function imports `send_email` and closes over that name. Tests therefore patch `email_service.send_email`, not `email_gateway.send_email`.
 
-**email_gateway.py**
+## 2. Which should be the target?
 
-```python file=./2025-11-29-mocker-python-misc/email_gateway.py
-```
+**Rule of thumb:**
 
-This “scary” dependency is exactly why tests reach for `mocker`: they can replace the SMTP call with something deterministic.
+> Patch the **name visible inside the module under test**, not the original place where the object was first defined. In other words, patch “where it is used” instead of “where it is defined".
 
----
-
-## 4. Under the hood: a tiny version of `MockerFixture`
-
-The real `MockerFixture` is more complex, but conceptually it wraps `unittest.mock.patch`.
-
-### How `unittest.mock.patch` works (simplified mental model)
-
-`unittest.mock.patch("module.attr", new=...)`:
-
-1. Splits `"module.attr"` into:
-
-   * module: `"module"`
-   * attribute: `"attr"`
-2. Imports the module.
-3. Stores the original `module.attr`.
-4. Replaces `module.attr` with your fake (`new` / `MagicMock`).
-5. Returns a “patcher” object that can later `.stop()` to restore the original.
 
 ---
 
-## 5. A minimal custom `TinyMocker`
+## 3. A minimal custom PocketMocker
 
 Now let’s build our own **mini version** of `mocker` so you can see all the moving parts.
 
@@ -78,30 +59,16 @@ We’ll do the work manually with:
 * `getattr` / `setattr`
 * `unittest.mock.MagicMock`
 
-### Code
-
 **pocket_mocker.py**
 
 ```python file=./2025-11-29-mocker-python-misc/pocket_mocker.py
 ```
 
-**test_email_service.py**
-
-```python file=./2025-11-29-mocker-python-misc/test_email_service.py
-```
-
-**Test output**
-
-```text file=./2025-11-29-mocker-python-misc/test_email_service.output.txt
-```
-
-The first test shows the real `pytest-mock` fixture in action, while the second runs through the DIY implementation so you can trace every step.
-
 ### The low-level helpers explained
 
 * `importlib.import_module(module_path)`
 
-  * Takes a string like `"notifications.mailer"` and returns the actual module object.
+  * Takes a string like `"email_service.send_email"` and returns the actual module object.
   * Internally uses Python’s import machinery and `sys.modules`.
 
 * `getattr(module, attr_name)`
@@ -123,7 +90,21 @@ The first test shows the real `pytest-mock` fixture in action, while the second 
     * Can be configured with `return_value` or `side_effect`.
     * Supports attributes and methods dynamically.
 
-By building `TinyMocker`, you can see that `pytest-mock` + `unittest.mock` are “just” a nicer layer over this same core behavior.
+By building `PocketMocker`, you can see that `pytest-mock` + `unittest.mock` are “just” a nicer layer over this same core behavior.
+
+## Tests
+
+**test_email_service.py**
+
+```python file=./2025-11-29-mocker-python-misc/test_email_service.py
+```
+
+**Test output**
+
+```text file=./2025-11-29-mocker-python-misc/test_email_service.output.txt
+```
+
+The first test shows the real `pytest-mock` fixture in action, while the second runs through the DIY implementation so you can trace every step.
 
 ---
 
