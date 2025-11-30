@@ -1,7 +1,7 @@
 ---
 
 title: "How does mocker in Python work?"
-description: "How does mocker in Python works under the hood and how to build a tiny version of it yourself."
+description: "Learn what mocker really does, how to patch the right targets, and build a tiny clone to understand the mechanics."
 date: 2025-11-30
 tags: ["python", "mocks"]
 featured: true
@@ -105,3 +105,7 @@ By building `PocketMocker`, you can see that `pytest-mock` + `unittest.mock` are
 ```
 
 The first test shows the real `pytest-mock` fixture in action, while the second runs through the DIY implementation so you can trace every step.
+
+## Additional Resources
+
+### [Why your mock doesn’t work - Ned Batchelder](https://nedbatchelder.com/blog/201908/why_your_mock_doesnt_work.html)
