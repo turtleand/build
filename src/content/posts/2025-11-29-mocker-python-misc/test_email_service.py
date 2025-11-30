@@ -20,8 +20,3 @@ def test_notify_user_with_pocket_mocker():
     assert result == "sent:you@example.com:Account update"
 
     pocket.stopall()
-
-
-# Result:
-# src/content/posts/2025-11-29-mocker-python-misc/test_email_service.py ..
-# =========================================================== 2 passed in 0.04s ===========================================================

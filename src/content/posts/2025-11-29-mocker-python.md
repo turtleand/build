@@ -9,6 +9,7 @@ draft: false
 locale: en
 translationKey: python-mocker
 -----------------------------
+<!-- snippet-hash: 263dee524e79f22be78940f7523cd3e515109079 -->
 
 # How does `mocker` in Python work?
 
@@ -33,56 +34,14 @@ It gives you a small object (usually called `mocker`) that wraps Python’s stan
 
 **email_service.py**
 
-```python
-from email_gateway import send_email
-
-
-def notify_user(recipient: str, message: str) -> str:
-    """Send the standard account-update email copy to a user."""
-    subject = "Account update"
-    body = f"Hello!\n\n{message}"
-    return send_email(recipient, subject, body)
+```python file=./2025-11-29-mocker-python-misc/email_service.py
 ```
 
 The high-level `notify_user` function imports `send_email` and closes over that name. Tests therefore patch `email_service.send_email`, not `email_gateway.send_email`.
 
 **email_gateway.py**
 
-```python
-import hashlib
-import smtplib
-from email.message import EmailMessage
-
-
-def send_email(recipient: str, subject: str, body: str) -> str:
-    """Deliver transactional email through our SMTP relay."""
-    if "@" not in recipient:
-        raise ValueError("Recipient must be an email address")
-
-    domain = recipient.split("@", 1)[1]
-    normalized_subject = subject.strip().capitalize()
-    checksum = hashlib.sha1(body.encode()).hexdigest()[:6]
-    snippet = body.strip().splitlines()[0][:24] if body.strip() else ""
-
-    computed_subject = f"[{domain}] {normalized_subject} • {checksum}"
-    if snippet:
-        computed_subject += f" | {snippet}"
-
-    message = EmailMessage()
-    message["From"] = "noreply@example.com"
-    message["To"] = recipient
-    message["Subject"] = computed_subject
-    message.set_content(body)
-
-    try:
-        with smtplib.SMTP("mail.example.com", 587, timeout=3) as client:
-            client.starttls()
-            client.login("noreply@example.com", "super-secret")
-            client.send_message(message)
-    except OSError:
-        pass
-
-    return f"sent:{recipient}:{computed_subject}"
+```python file=./2025-11-29-mocker-python-misc/email_gateway.py
 ```
 
 This “scary” dependency is exactly why tests reach for `mocker`: they can replace the SMTP call with something deterministic.
@@ -123,58 +82,17 @@ We’ll do the work manually with:
 
 **pocket_mocker.py**
 
-```python
-import importlib
-from unittest.mock import MagicMock
-
-
-class PocketMocker:
-    """Tiny helper to mimic the patching API readers see from pytest-mock."""
-
-    def __init__(self):
-        self._stack = []
-
-    def patch(self, target: str, replacement=None, **kwargs):
-        module_path, attribute = target.rsplit(".", 1)
-        module = importlib.import_module(module_path)
-        original = getattr(module, attribute)
-        if replacement is None:
-            replacement = MagicMock(**kwargs)
-        setattr(module, attribute, replacement)
-        self._stack.append((module, attribute, original))
-        return replacement
-
-    def stopall(self):
-        while self._stack:
-            module, attribute, original = self._stack.pop()
-            setattr(module, attribute, original)
+```python file=./2025-11-29-mocker-python-misc/pocket_mocker.py
 ```
 
 **test_email_service.py**
 
-```python
-import email_service
-from pocket_mocker import PocketMocker
+```python file=./2025-11-29-mocker-python-misc/test_email_service.py
+```
 
+**Test output**
 
-def test_notify_user_with_pytest_mocker(mocker):
-    mocker.patch(
-        "email_service.send_email", return_value="sent:me@example.com:Account update"
-    )
-    result = email_service.notify_user("me@example.com", "You have a new badge!")
-    assert result == "sent:me@example.com:Account update"
-
-
-def test_notify_user_with_pocket_mocker():
-    pocket = PocketMocker()
-    pocket.patch(
-        "email_service.send_email", return_value="sent:you@example.com:Account update"
-    )
-
-    result = email_service.notify_user("you@example.com", "Password changed")
-    assert result == "sent:you@example.com:Account update"
-
-    pocket.stopall()
+```text file=./2025-11-29-mocker-python-misc/test_email_service.output.txt
 ```
 
 The first test shows the real `pytest-mock` fixture in action, while the second runs through the DIY implementation so you can trace every step.
