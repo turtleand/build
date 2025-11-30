@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import type { TagSummary } from '../../../utils/blog';
-import { buildTagSummaries, filterByLocale, filterPublished } from '../../../utils/blog';
+import { buildTagSummaries, excludeResearchNotes, filterByLocale, filterPublished } from '../../../utils/blog';
 import TagDetailPage from '../../../page-templates/TagDetailPage.astro';
 import type { Locale } from '../../../utils/i18n';
 
@@ -9,7 +9,7 @@ const pageLocale: Locale = 'es';
 
 export async function getStaticPaths() {
 	const locale: Locale = 'es';
-	const posts = (await getCollection('posts')).filter(filterPublished).filter(filterByLocale(locale));
+	const posts = (await getCollection('posts')).filter(filterPublished).filter(filterByLocale(locale)).filter(excludeResearchNotes);
 	const summaries = buildTagSummaries(posts);
 	return summaries.map((summary) => ({
 		params: { tag: summary.slug },

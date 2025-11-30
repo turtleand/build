@@ -1,7 +1,7 @@
 ---
 
-title: "How does mocker in Python work?"
-description: "Learn what mocker really does, how to patch the right targets, and build a tiny clone to understand the mechanics."
+title: "Patching the Right Thing with mocker"
+description: "A quick tour on why “patch where it’s used” matters."
 date: 2025-11-30
 tags: ["python", "mocks"]
 featured: true
@@ -15,13 +15,11 @@ slug: "2025-11-29-mocker-python"
 Short answer:
 `mocker` is a **pytest fixture** provided by the [`pytest-mock`](https://github.com/pytest-dev/pytest-mock) plugin.
 
-It gives you a small object (usually called `mocker`) that wraps Python’s standard library [`unittest.mock`](https://docs.python.org/3/library/unittest.mock.html) and lets you:
+It provides a small helper object (usually called `mocker`) that wraps Python’s standard library [`unittest.mock`](https://docs.python.org/3/library/unittest.mock.html) so you can:
 
-* **Replace (“patch”) real objects** (functions, methods, attributes) with controllable fakes (`MagicMock`).
-* **Track calls**: how many times a fake was called, with what arguments, etc.
-* **Automatically undo all patches** at the end of the test so your code goes back to normal.
-
-> “For this test, temporarily swap this function with a fake one.”
+* **Replace (“patch”) real objects** (functions, methods, attributes) with controllable `MagicMock` fakes.
+* **Track calls**: check how many times a fake ran, which arguments it saw, and related details.
+* **Automatically undo all patches** at the end of each test so your code returns to normal.
 
 ---
 
@@ -38,23 +36,22 @@ It gives you a small object (usually called `mocker`) that wraps Python’s stan
 ```python file=./sandbox/email_service.py
 ```
 
-The high-level `notify_user` function imports `send_email` and closes over that name. Tests therefore patch `email_service.send_email`, not `email_gateway.send_email`.
+Because the high-level `notify_user` function imports `send_email` and closes over that name, tests patch `email_service.send_email`, instead of `email_gateway.send_email`.
 
-## 2. Which should be the target?
+## 2. What should be the target?
 
 **Rule of thumb:**
 
-> Patch the **name visible inside the module under test**, not the original place where the object was first defined. In other words, patch “where it is used” instead of “where it is defined".
+> Patch the **name visible inside the module under test**, not the original place where the object was first defined. In other words, patch “where it is used” instead of “where it is defined”.
 
 
 ---
 
 ## 3. A minimal custom PocketMocker
 
-Now let’s build our own **mini version** of `mocker` so you can see all the moving parts.
+Now let’s build a **mini version** of `mocker` to show all the moving parts.
 
-We won’t use `unittest.mock.patch` at all.
-We’ll do the work manually with:
+We won’t touch `unittest.mock.patch`; instead we’ll do the work manually with:
 
 * `importlib.import_module`
 * `getattr` / `setattr`
@@ -69,29 +66,29 @@ We’ll do the work manually with:
 
 * `importlib.import_module(module_path)`
 
-  * Takes a string like `"email_service.send_email"` and returns the actual module object.
-  * Internally uses Python’s import machinery and `sys.modules`.
+  * Takes a string such as `"email_service.send_email"` and returns the actual module object.
+  * Relies on Python’s import machinery and `sys.modules`.
 
 * `getattr(module, attr_name)`
 
-  * Reads an attribute from an object.
+  * Reads an attribute on an object.
   * Equivalent to `module.attr_name`.
 
 * `setattr(module, attr_name, replacement)`
 
-  * Assigns an attribute on an object.
+  * Sets an attribute on an object.
   * Equivalent to `module.attr_name = replacement`.
-  * This is literally the “patch” step: we overwrite the original function with our fake.
+  * This is the literal “patch” step: we overwrite the original function with our fake.
 
 * `MagicMock(**kwargs)`
 
-  * Creates a highly flexible fake object that:
+  * Creates a flexible fake object that:
 
     * Records calls (so you can assert later).
     * Can be configured with `return_value` or `side_effect`.
     * Supports attributes and methods dynamically.
 
-By building `PocketMocker`, you can see that `pytest-mock` + `unittest.mock` are “just” a nicer layer over this same core behavior.
+Building `PocketMocker` shows that `pytest-mock` plus `unittest.mock` are simply a nicer layer over this same core behavior.
 
 ## Tests
 
@@ -105,4 +102,4 @@ By building `PocketMocker`, you can see that `pytest-mock` + `unittest.mock` are
 ```text file=./sandbox/test_email_service.output.txt
 ```
 
-The first test shows the real `pytest-mock` fixture in action, while the second runs through the DIY implementation so you can trace every step.
+The first test exercises the real `pytest-mock` fixture, while the second walks through the DIY implementation so you can trace every step.
