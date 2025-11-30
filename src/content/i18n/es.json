@@ -64,6 +64,15 @@
     "publishedOn": "Publicado",
     "tagsLabel": "Etiquetas",
     "translatedLabel": "Ver esta publicación en",
+    "deepSearch": {
+      "heading": "Deep Search",
+      "summary": "Despliega para leer las notas de investigación, referencias y comparaciones reunidas para este tema.",
+      "openLabel": "Abrir Deep Search",
+      "collapseLabel": "Cerrar Deep Search",
+      "openNewTab": "Abrir publicación completa",
+      "backToSummary": "Volver al resumen",
+      "badge": "Compañero de investigación"
+    },
     "timeline": {
       "label": "Cronología",
       "jumpLabel": "Saltar entre secciones",
