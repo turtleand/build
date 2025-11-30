@@ -8,6 +8,7 @@ featured: true
 draft: false
 locale: en
 translationKey: python-mocker
+slug: "2025-11-29-mocker-python"
 -----------------------------
 <!-- snippet-hash: a52723d3f46e94af33bc205dcc90e2a2de446e90 -->
 
@@ -28,13 +29,13 @@ It gives you a small object (usually called `mocker`) that wraps Python’s stan
 
 **email_gateway.py**
 
-```python file=./2025-11-29-mocker-python-misc/email_gateway.py
+```python file=./sandbox/email_gateway.py
 ```
 
 
 **email_service.py**
 
-```python file=./2025-11-29-mocker-python-misc/email_service.py
+```python file=./sandbox/email_service.py
 ```
 
 The high-level `notify_user` function imports `send_email` and closes over that name. Tests therefore patch `email_service.send_email`, not `email_gateway.send_email`.
@@ -61,7 +62,7 @@ We’ll do the work manually with:
 
 **pocket_mocker.py**
 
-```python file=./2025-11-29-mocker-python-misc/pocket_mocker.py
+```python file=./sandbox/pocket_mocker.py
 ```
 
 ### The low-level helpers explained
@@ -96,13 +97,12 @@ By building `PocketMocker`, you can see that `pytest-mock` + `unittest.mock` are
 
 **test_email_service.py**
 
-```python file=./2025-11-29-mocker-python-misc/test_email_service.py
+```python file=./sandbox/test_email_service.py
 ```
 
 **Test output**
 
-```text file=./2025-11-29-mocker-python-misc/test_email_service.output.txt
+```text file=./sandbox/test_email_service.output.txt
 ```
 
 The first test shows the real `pytest-mock` fixture in action, while the second runs through the DIY implementation so you can trace every step.
-

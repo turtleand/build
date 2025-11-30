@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync, watch } from "node:fs";
 import { dirname, resolve } from "node:path";
 
-const ARTICLE_PATH = resolve("src/content/posts/2025-11-29-mocker-python.md");
+const ARTICLE_PATH = resolve("src/content/posts/2025-11-29-mocker-python/index.md");
 const HASH_MARKER = "<!-- snippet-hash:";
 
 const args = process.argv.slice(2);

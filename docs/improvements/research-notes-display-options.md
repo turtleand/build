@@ -48,7 +48,7 @@ When a reader clicks the “Research Notes” (a.k.a. DeepSeek) link on a post, 
 ## Current failure (why the inline expansion is still broken)
 
 * The Research Notes link in the main post continues to navigate to the companion URL and returns 404 instead of expanding inline. That means the client-side interception isn’t firing for that anchor (likely because the rendered href doesn’t exactly match the string we’re watching, or the DOM is different when Markdown renders the link).
-* The companion page exists (`2025-11-29-mocker-python-research-notes.md` with `slug: "2025-11-29-mocker-python-research-notes"`), so the 404 is a routing/refresh issue rather than missing content. The inline accordion depends on the pre-rendered research-notes entry; navigation shouldn’t happen at all.
+* The companion page exists (`2025-11-29-mocker-python/research-notes.md` with `slug: "2025-11-29-mocker-python-research-notes"`), so the 404 is a routing/refresh issue rather than missing content. The inline accordion depends on the pre-rendered research-notes entry; navigation shouldn’t happen at all.
 
 ## Plan to fix the inline accordion
 
