@@ -9,7 +9,7 @@ draft: false
 locale: en
 translationKey: python-mocker
 -----------------------------
-<!-- snippet-hash: a475383814af5277ff29a87f9ef47219d9fcb4df -->
+<!-- snippet-hash: a52723d3f46e94af33bc205dcc90e2a2de446e90 -->
 
 Short answer:
 `mocker` is a **pytest fixture** provided by the [`pytest-mock`](https://github.com/pytest-dev/pytest-mock) plugin.
@@ -105,10 +105,3 @@ By building `PocketMocker`, you can see that `pytest-mock` + `unittest.mock` are
 ```
 
 The first test shows the real `pytest-mock` fixture in action, while the second runs through the DIY implementation so you can trace every step.
-
----
-
-## Deep Search companion
-
-Want the giant research dump, references, and best practices? Jump to the [Deep Search companion post](/blog/2025-11-29-mocker-python-deep-search) to read every source and comparison we collected while building this guide.
-****

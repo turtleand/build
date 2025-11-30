@@ -52,8 +52,28 @@ When a reader clicks the “Deep Search” (a.k.a. DeepSeek) link on a post, sur
 
 ## Plan to fix the inline accordion
 
-1) Make the Deep Search CTA a button that never navigates: render a semantic button (or an `<a>` with `role="button"` and no href) that always calls the open/close logic; keep a separate “Open full post” anchor for new-tab use.  
-2) Normalize href matching and event binding: instead of matching a hard-coded href string, bind the toggle to a dedicated data attribute (e.g., `data-deep-search-trigger`) so Markdown link variations or basePath differences don’t break the handler.  
-3) Guard against stale builds/paths: ensure the deep-search slug is passed into PostPage (already done) and add a console warning if `deepSearchPost` is missing so we know to re-run `astro sync`/`dev`.  
-4) Add a regression test plan: manual checklist—load the main post, click the CTA (should expand), click “Open full post” (should open new tab), refresh page and repeat; verify no navigation when clicking the CTA.  
+1) Make the Deep Search CTA a button that never navigates: render a semantic button (or an `<a>` with `role="button"` and no href) that always calls the open/close logic; keep a separate “Open full post” anchor for new-tab use.
+2) Normalize href matching and event binding: instead of matching a hard-coded href string, bind the toggle to a dedicated data attribute (e.g., `data-deep-search-trigger`) so Markdown link variations or basePath differences don’t break the handler.
+3) Guard against stale builds/paths: ensure the deep-search slug is passed into PostPage (already done) and add a console warning if `deepSearchPost` is missing so we know to re-run `astro sync`/`dev`.
+4) Add a regression test plan: manual checklist—load the main post, click the CTA (should expand), click “Open full post” (should open new tab), refresh page and repeat; verify no navigation when clicking the CTA.
 5) Ship the fix: update PostPage to use the new trigger, remove the href from the inline CTA, and keep the “Open full post” link for external navigation.
+
+## How the inline Deep Search now works (implemented behavior)
+
+1. **Server setup**
+   * `getStaticPaths` loads the main post plus its Deep Search companion via shared `translationKey`.
+   * `PostPage` receives both entries and renders the companion markdown with `await deepSearchPost.render()`.
+   * The inline block is rendered **after** the article content so it visually feels like a footnote.
+2. **CTA & controls**
+   * The “Open Deep Search” button is a pure `<button>` with `data-deep-search-toggle`; no href means no accidental navigation.
+   * The “Open full post” link still points to `/blog/<deep-search-slug>` for new-tab reading.
+   * Collapsing controls live inside the panel (`data-deep-search-collapse`, `data-deep-search-back`).
+3. **Client script**
+   * On DOM ready, script finds the section/panel/toggle by IDs derived from the post slug.
+   * `syncLabel()` updates `aria-expanded` and button text when opened/closed.
+   * `open()` unhides the panel, scrolls to it, and adds `.is-open`; `close()` hides it and scrolls back to the section header.
+   * Any link marked with `data-deep-search-trigger` (e.g., Markdown CTA) calls `open()` instead of navigating.
+4. **User flow**
+   * Reader clicks “Open Deep Search” → panel expands in place with references.
+   * “Open full post” opens the companion in a new tab if they prefer full-page reading.
+   * At any time they can collapse or jump back to the summary via the sticky buttons.
