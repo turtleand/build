@@ -1,5 +1,3 @@
-import Fuse from 'fuse.js';
-
 /**
  * @typedef {Object} SearchDoc
  * @property {string} id
@@ -21,6 +19,12 @@ import Fuse from 'fuse.js';
 
 const DATA_ID = 'home-search-data';
 const CONFIG_ID = 'home-search-config';
+const getFuse = () => {
+	if (typeof window === 'undefined') return null;
+	if (window.Fuse) return window.Fuse;
+	console.warn('Fuse library not found on window.');
+	return null;
+};
 
 /**
  * @param {string | undefined} template
@@ -43,9 +47,11 @@ const setupSearch = () => {
   /** @type {SearchConfig} */
   const config = JSON.parse(configEl.textContent || '{}');
 
+  const fuseLib = getFuse();
+
   const fuse =
-    docs.length > 0
-      ? new Fuse(docs, {
+    docs.length > 0 && fuseLib
+      ? new fuseLib(docs, {
         keys: [
           { name: 'title', weight: 0.4 },
           { name: 'description', weight: 0.2 },

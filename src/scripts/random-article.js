@@ -1,7 +1,8 @@
-type RandomResponse = {
-	href: string;
-	slug?: string;
-};
+/**
+ * @typedef {Object} RandomResponse
+ * @property {string} href
+ * @property {string} [slug]
+ */
 
 const MODAL_SELECTOR = '[data-random-modal]';
 const MODAL_VISIBLE_CLASS = 'random-article-modal--visible';
@@ -41,7 +42,8 @@ const fetchRandomHref = async () => {
 		throw new Error(`Random article request failed: ${response.status}`);
 	}
 
-	const payload = (await response.json()) as Partial<RandomResponse>;
+	/** @type {Partial<RandomResponse>} */
+	const payload = await response.json();
 	if (!payload?.href) {
 		throw new Error('Random article payload missing href');
 	}
@@ -49,7 +51,10 @@ const fetchRandomHref = async () => {
 	return payload.href;
 };
 
-const showModal = (modal: HTMLElement | null) => {
+/**
+ * @param {HTMLElement | null} modal
+ */
+const showModal = (modal) => {
 	if (!modal) return;
 	modal.hidden = false;
 	// Force reflow so transition plays even when toggled quickly
@@ -58,7 +63,10 @@ const showModal = (modal: HTMLElement | null) => {
 	document.body?.classList.add(BODY_LOCK_CLASS);
 };
 
-const hideModal = (modal: HTMLElement | null) => {
+/**
+ * @param {HTMLElement | null} modal
+ */
+const hideModal = (modal) => {
 	if (!modal) return;
 	modal.classList.remove(MODAL_VISIBLE_CLASS);
 	document.body?.classList.remove(BODY_LOCK_CLASS);
@@ -73,7 +81,10 @@ const hideModal = (modal: HTMLElement | null) => {
 	}, 220);
 };
 
-const shouldBypass = (event: MouseEvent) =>
+/**
+ * @param {MouseEvent} event
+ */
+const shouldBypass = (event) =>
 	event.defaultPrevented ||
 	event.button !== 0 ||
 	event.metaKey ||
@@ -82,13 +93,18 @@ const shouldBypass = (event: MouseEvent) =>
 	event.shiftKey;
 
 const attachHandler = () => {
-	const trigger = document.querySelector<HTMLAnchorElement>(TRIGGER_SELECTOR);
+	/** @type {HTMLAnchorElement | null} */
+	const trigger = document.querySelector(TRIGGER_SELECTOR);
 	if (!trigger || trigger.dataset.randomBound === 'true') return;
-	const modal = document.querySelector<HTMLElement>(MODAL_SELECTOR);
+	/** @type {HTMLElement | null} */
+	const modal = document.querySelector(MODAL_SELECTOR);
 	trigger.dataset.randomBound = 'true';
 	let pendingNavigation = false;
 
-	const navigateToHref = (href: string) => {
+	/**
+	 * @param {string} href
+	 */
+	const navigateToHref = (href) => {
 		if (prefersReducedMotion()) {
 			window.location.assign(href);
 		} else {
