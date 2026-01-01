@@ -6,7 +6,7 @@ tags: ["cryptography", "security"]
 featured: true
 draft: false
 image:
-  src: /images/posts/passkeys-signing.svg
+  src: /images/posts/security.svg
   alt: "Shield and key symbolizing cryptographic signing"
 locale: en
 translationKey: passkeys-private-public-key

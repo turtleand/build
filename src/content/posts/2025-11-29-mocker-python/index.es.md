@@ -4,7 +4,7 @@ title: "¿Cómo funciona mocker en Python?"
 description: "Aprende qué hace realmente mocker, cómo parchear los objetivos correctos y construye un clon diminuto para entender la mecánica."
 date: 2025-11-30
 tags: ["python", "mocks"]
-featured: true
+featured: false
 draft: false
 image:
   src: /images/posts/python-logo.svg

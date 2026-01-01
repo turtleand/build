@@ -3,7 +3,7 @@ title: "Mapping Programming Conditionals to Logic Gates"
 description: "How if/else correspond to boolean expressions, logic gates, and why clauses can be safely reordered."
 date: 2025-11-23
 tags: ["logic", "fundamentals"]
-featured: true
+featured: false
 draft: false
 image:
   src: /images/posts/logic-gates.svg

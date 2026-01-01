@@ -4,7 +4,7 @@ title: "Patching the Right Thing with mocker"
 description: "A quick tour on why “patch where it’s used” matters."
 date: 2025-11-30
 tags: ["python", "mocks"]
-featured: true
+featured: false
 draft: false
 image:
   src: /images/posts/python-logo.svg

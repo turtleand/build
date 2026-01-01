@@ -6,7 +6,7 @@ tags: ["cryptography", "security"]
 featured: true
 draft: false
 image:
-  src: /images/posts/passkeys-signing.svg
+  src: /images/posts/security.svg
   alt: "Escudo y llave que simbolizan la firma criptografica"
 locale: es
 translationKey: passkeys-private-public-key
