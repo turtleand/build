@@ -71,6 +71,10 @@ const setupSearch = () => {
   /** @type {HTMLElement | null} */
   const resultsGrid = document.querySelector('[data-search-grid]');
   /** @type {HTMLElement | null} */
+  const defaultGrid = document.querySelector('[data-post-grid]');
+  /** @type {HTMLElement | null} */
+  const pagination = document.querySelector('[data-pagination]');
+  /** @type {HTMLElement | null} */
   const emptyState = document.querySelector('[data-search-empty]');
   /** @type {HTMLElement | null} */
   const countLabel = document.querySelector('[data-search-count]');
@@ -102,14 +106,17 @@ const setupSearch = () => {
 
     // Fallback: basic card if template missing
     const fallback = document.createElement('article');
-    fallback.className = 'post-card';
+    fallback.className = 'post-card post-card--list';
     fallback.innerHTML = `
       <a class="card-link" href="${doc.href}">
+        <div class="post-thumb" aria-hidden="true"></div>
+        <div class="post-content">
         <div class="post-top">
           <h3>${doc.title}</h3>
           <p class="post-date">${doc.dateLabel}</p>
         </div>
         <p class="post-description">${doc.description}</p>
+        </div>
       </a>
     `;
     return fallback;
@@ -121,6 +128,14 @@ const setupSearch = () => {
     emptyState.hidden = true;
     countLabel.textContent = config.defaultCount || '';
     clearBtn.hidden = true;
+    if (defaultGrid) {
+      defaultGrid.hidden = false;
+      defaultGrid.style.display = '';
+    }
+    if (pagination) {
+      pagination.hidden = false;
+      pagination.style.display = '';
+    }
   };
 
   /**
@@ -142,6 +157,14 @@ const setupSearch = () => {
     }
     countLabel.textContent = replaceCount(config.countResults, matches.length);
     clearBtn.hidden = false;
+    if (defaultGrid) {
+      defaultGrid.hidden = true;
+      defaultGrid.style.display = 'none';
+    }
+    if (pagination) {
+      pagination.hidden = true;
+      pagination.style.display = 'none';
+    }
   };
 
   const runSearch = () => {
