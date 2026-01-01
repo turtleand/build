@@ -77,14 +77,12 @@ const searchConfigScript = escapeForScript({
 	alternateLabel={alternateLabel}
 >
 	{heroPost && (
-		<section class="hero">
+		<a class="hero-card" href={buildHref(`/blog/${getPostSlug(heroPost)}`)}>
 			<p class="hero-kicker">{dictionary.sections.featuredTitle}</p>
 			<h1>{heroPost.data.title}</h1>
 			<p class="hero-subtitle">{heroPost.data.description}</p>
-			<a class="pill hero-cta" href={buildHref(`/blog/${getPostSlug(heroPost)}`)}>
-				{dictionary.hero.primaryCta}
-			</a>
-		</section>
+			<span class="hero-hint">{dictionary.buttons.readMore} →</span>
+		</a>
 	)}
 
 	<section class="feed">
@@ -136,13 +134,50 @@ const searchConfigScript = escapeForScript({
 <script type="module" src={homeSearchScript}></script>
 
 <style>
-.hero {
+.hero-card {
 	margin-top: 2rem;
 	padding: 1.75rem;
 	border: 1px solid var(--border);
 	border-radius: var(--radius-lg);
 	background: linear-gradient(135deg, color-mix(in srgb, var(--surface-card) 88%, transparent), var(--surface-elevated));
 	box-shadow: var(--shadow-soft);
+	display: block;
+	text-decoration: none;
+	color: inherit;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+	position: relative;
+	cursor: pointer;
+}
+
+.hero-card:hover,
+.hero-card:focus-visible {
+	border-color: var(--accent);
+	box-shadow: var(--shadow-card);
+	transform: translateY(-2px);
+	outline: none;
+}
+
+.hero-card::after {
+	content: '↗';
+	position: absolute;
+	top: 1.25rem;
+	right: 1.25rem;
+	width: 2rem;
+	height: 2rem;
+	border-radius: 999px;
+	border: 1px solid var(--border);
+	display: grid;
+	place-items: center;
+	color: var(--text-muted);
+	background: var(--surface-elevated);
+	transition: transform 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.hero-card:hover::after,
+.hero-card:focus-visible::after {
+	transform: translate(2px, -2px);
+	border-color: var(--accent);
+	color: var(--accent);
 }
 
 .hero-kicker {
@@ -153,7 +188,7 @@ const searchConfigScript = escapeForScript({
 	color: var(--text-muted);
 }
 
-.hero h1 {
+.hero-card h1 {
 	margin: 0;
 	font-family: var(--font-heading);
 	font-size: clamp(2rem, 3vw, 2.8rem);
@@ -162,7 +197,15 @@ const searchConfigScript = escapeForScript({
 .hero-subtitle {
 	margin: 0.75rem 0 1.25rem;
 	color: var(--text-muted);
-	max-width: 52ch;
+}
+
+.hero-hint {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	font-size: 0.95rem;
+	color: var(--text-base);
+	font-weight: 600;
 }
 
 .hero-cta {
@@ -190,9 +233,9 @@ const searchConfigScript = escapeForScript({
 }
 
 .search-inline {
-	padding: 0.75rem 1rem;
+	padding: 0.6rem;
 	border: 1px solid var(--border);
-	border-radius: var(--radius-pill);
+	border-radius: var(--radius-lg);
 	background: var(--surface-card);
 	box-shadow: var(--shadow-soft);
 }
@@ -211,11 +254,22 @@ const searchConfigScript = escapeForScript({
 	font-size: 1rem;
 	background: var(--surface-elevated);
 	color: var(--text-base);
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--surface-elevated) 70%, var(--border));
 }
 
 .search-input:focus {
 	outline: 2px solid var(--accent);
 	outline-offset: 2px;
+}
+
+.search-input-row .pill {
+	border-radius: var(--radius-pill);
+	box-shadow: none;
+}
+
+.search-inline:focus-within {
+	border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
 .search-clear[hidden] {
