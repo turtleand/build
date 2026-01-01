@@ -19,11 +19,18 @@ const buildHref = (path: string) => {
 const slug = getPostSlug(post);
 const formattedDate = formatDate(post.data.date, locale);
 const readMoreLabel = dictionary.buttons.readMore;
+const image = post.data.image;
 ---
 
 <article class:list={['post-card', variant === 'list' && 'post-card--list']}>
 	<a class="card-link" href={buildHref(`/blog/${slug}`)} aria-label={`${readMoreLabel}: ${post.data.title}`}>
-		{variant === 'list' && <div class="post-thumb" aria-hidden="true"></div>}
+		{variant === 'list' && (
+			image ? (
+				<img class="post-thumb" src={image.src} alt={image.alt} loading="lazy" />
+			) : (
+				<div class="post-thumb" aria-hidden="true"></div>
+			)
+		)}
 		<div class="post-content">
 			<div class="post-top">
 				<h3>{post.data.title}</h3>
@@ -101,6 +108,7 @@ const readMoreLabel = dictionary.buttons.readMore;
 	border-radius: var(--radius-md);
 	background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 45%, transparent), var(--surface-contrast));
 	flex-shrink: 0;
+	object-fit: cover;
 }
 
 .post-content {

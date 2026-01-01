@@ -5,6 +5,9 @@ date: 2025-11-23
 tags: ["git", "github", "mac"]
 featured: true
 draft: false
+image:
+  src: /images/posts/github-mark.svg
+  alt: "Logo Github"
 locale: es
 translationKey: configure-multiple-github-accounts-mac
 slug: configure-multiple-github-accounts-mac

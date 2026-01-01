@@ -10,6 +10,12 @@ const posts = defineCollection({
     featured: z.boolean().default(false),
     draft: z.boolean().default(false),
     slug: z.string().optional(),
+    image: z
+      .object({
+        src: z.string(),
+        alt: z.string(),
+      })
+      .optional(),
     locale: z.enum(['en', 'es']).default('en'),
     translationKey: z.string().optional(),
     isResearchNotes: z.boolean().default(false),

@@ -6,6 +6,9 @@ date: 2025-11-30
 tags: ["python", "mocks"]
 featured: true
 draft: false
+image:
+  src: /images/posts/python-logo.svg
+  alt: "Python logo"
 locale: es
 translationKey: python-mocker
 slug: "2025-11-29-mocker-python-es"
