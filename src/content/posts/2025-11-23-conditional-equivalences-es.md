@@ -5,6 +5,9 @@ date: 2025-11-23
 tags: ["logic", "fundamentals"]
 featured: true
 draft: false
+image:
+  src: /images/posts/logic-gates.svg
+  alt: "Logo de compuerta lógica"
 locale: es
 translationKey: conditional-equivalences
 slug: conditional-equivalences
@@ -104,13 +107,13 @@ puede_cruzar_reordenado =
 
 ```
 | tiene_semaforos | luz_verde | cruce_vacio | puede_cruzar |
-| -------------- | --------- | ----------- | ------------ |
-| 0              | 0         | 0           | 0            |
-| 0              | 0         | 1           | 1            |
-| 0              | 1         | 0           | 0            |
-| 0              | 1         | 1           | 1            |
-| 1              | 0         | 0           | 0            |
-| 1              | 0         | 1           | 0            |
-| 1              | 1         | 0           | 1            |
-| 1              | 1         | 1           | 1            |
+| --------------- | --------- | ----------- | ------------ |
+| 0               | 0         | 0           | 0            |
+| 0               | 0         | 1           | 1            |
+| 0               | 1         | 0           | 0            |
+| 0               | 1         | 1           | 1            |
+| 1               | 0         | 0           | 0            |
+| 1               | 0         | 1           | 0            |
+| 1               | 1         | 0           | 1            |
+| 1               | 1         | 1           | 1            |
 ```

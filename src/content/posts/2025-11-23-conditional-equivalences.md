@@ -5,6 +5,9 @@ date: 2025-11-23
 tags: ["logic", "fundamentals"]
 featured: true
 draft: false
+image:
+  src: /images/posts/logic-gates.svg
+  alt: "Logic gate logo"
 locale: en
 translationKey: conditional-equivalences
 ---

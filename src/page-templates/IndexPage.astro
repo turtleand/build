@@ -19,6 +19,8 @@ const posts = allPosts.filter(excludeResearchNotes);
 const featuredPosts = posts.filter((post) => post.data.featured);
 const paginatedPosts = posts.slice(0, POSTS_PER_PAGE);
 const totalPages = Math.max(1, Math.ceil(posts.length / POSTS_PER_PAGE));
+const heroPost = featuredPosts[0] ?? posts[0];
+const feedPosts = heroPost ? paginatedPosts.filter((post) => getPostSlug(post) !== getPostSlug(heroPost)) : paginatedPosts;
 const altLocale = otherLocale(locale);
 const alternateHref = altLocale === 'es' ? '/es' : '/';
 const alternateLabel = dictionary.navigation.locales[altLocale].aria;
@@ -74,27 +76,18 @@ const searchConfigScript = escapeForScript({
 	alternateHref={alternateHref}
 	alternateLabel={alternateLabel}
 >
-	{featuredPosts.length > 0 && (
-		<section id="featured" class="section">
-			<div class="section-header">
-				<h2>{dictionary.sections.featuredTitle}</h2>
-				<p>{dictionary.sections.featuredDescription}</p>
-			</div>
-			<div class="grid">
-				{featuredPosts.map((post) => (
-					<PostCard post={post} locale={locale} basePath={basePath} dictionary={dictionary} />
-				))}
-			</div>
-		</section>
+	{heroPost && (
+		<a class="hero-card" href={buildHref(`/blog/${getPostSlug(heroPost)}`)}>
+			<p class="hero-kicker">{dictionary.sections.featuredTitle}</p>
+			<h1>{heroPost.data.title}</h1>
+			<p class="hero-subtitle">{heroPost.data.description}</p>
+			<span class="hero-hint">{dictionary.buttons.readMore} →</span>
+		</a>
 	)}
 
-	<section class="section" data-search-section>
-		<div class="section-header">
-			<h2>{dictionary.search.label}</h2>
-			<p>{dictionary.sections.allDescription}</p>
-		</div>
-		<div class="search-panel">
-			<label class="search-label" for="home-search">{dictionary.search.label}</label>
+	<section class="feed">
+		<div class="search-inline">
+			<label class="sr-only" for="home-search">{dictionary.search.label}</label>
 			<div class="search-input-row">
 				<input
 					id="home-search"
@@ -112,17 +105,10 @@ const searchConfigScript = escapeForScript({
 			<p class="search-count" data-search-count>{defaultCountLabel}</p>
 		</div>
 		<p class="search-empty" data-search-empty hidden>{dictionary.search.empty}</p>
-		<div class="grid search-results" data-search-grid hidden></div>
-	</section>
-
-	<section class="section">
-		<div class="section-header">
-			<h2>{dictionary.sections.allTitle}</h2>
-			<p>{dictionary.sections.allDescription}</p>
-		</div>
-		<div class="grid" data-post-grid>
-			{paginatedPosts.map((post) => (
-				<PostCard post={post} locale={locale} basePath={basePath} dictionary={dictionary} />
+		<div class="feed-list search-results" data-search-grid hidden></div>
+		<div class="feed-list" data-post-grid>
+			{feedPosts.map((post) => (
+				<PostCard post={post} locale={locale} basePath={basePath} dictionary={dictionary} variant="list" />
 			))}
 		</div>
 
@@ -140,7 +126,7 @@ const searchConfigScript = escapeForScript({
 <div hidden aria-hidden="true" data-card-templates>
 	{posts.map((post) => (
 		<template data-card-template data-slug={getPostSlug(post)}>
-			<PostCard post={post} locale={locale} basePath={basePath} dictionary={dictionary} />
+			<PostCard post={post} locale={locale} basePath={basePath} dictionary={dictionary} variant="list" />
 		</template>
 	))}
 </div>
@@ -148,28 +134,91 @@ const searchConfigScript = escapeForScript({
 <script type="module" src={homeSearchScript}></script>
 
 <style>
-.section {
-	margin-top: 1.5rem;
+.hero-card {
+	margin-top: 2rem;
+	padding: 1.75rem;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	background: linear-gradient(135deg, color-mix(in srgb, var(--surface-card) 88%, transparent), var(--surface-elevated));
+	box-shadow: var(--shadow-soft);
+	display: block;
+	text-decoration: none;
+	color: inherit;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+	position: relative;
+	cursor: pointer;
 }
 
-.section-header h2 {
-	margin: 0;
-	font-family: var(--font-heading);
-	font-size: 1.6rem;
+.hero-card:hover,
+.hero-card:focus-visible {
+	border-color: var(--accent);
+	box-shadow: var(--shadow-card);
+	transform: translateY(-2px);
+	outline: none;
 }
 
-.section-header p {
-	margin: 0.3rem 0 0;
+.hero-card::after {
+	content: '↗';
+	position: absolute;
+	top: 1.25rem;
+	right: 1.25rem;
+	width: 2rem;
+	height: 2rem;
+	border-radius: 999px;
+	border: 1px solid var(--border);
+	display: grid;
+	place-items: center;
+	color: var(--text-muted);
+	background: var(--surface-elevated);
+	transition: transform 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.hero-card:hover::after,
+.hero-card:focus-visible::after {
+	transform: translate(2px, -2px);
+	border-color: var(--accent);
+	color: var(--accent);
+}
+
+.hero-kicker {
+	margin: 0 0 0.65rem;
+	font-size: 0.85rem;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
 	color: var(--text-muted);
 }
 
-.grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-	grid-auto-rows: 1fr;
-	gap: 1.4rem;
-	margin-top: 1.35rem;
-	align-items: stretch;
+.hero-card h1 {
+	margin: 0;
+	font-family: var(--font-heading);
+	font-size: clamp(2rem, 3vw, 2.8rem);
+}
+
+.hero-subtitle {
+	margin: 0.75rem 0 1.25rem;
+	color: var(--text-muted);
+}
+
+.hero-hint {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	font-size: 0.95rem;
+	color: var(--text-base);
+	font-weight: 600;
+}
+
+.hero-cta {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+}
+
+.feed {
+	margin-top: 1.75rem;
+	display: flex;
+	flex-direction: column;
+	gap: 1.2rem;
 }
 
 .pagination {
@@ -183,20 +232,12 @@ const searchConfigScript = escapeForScript({
 	color: var(--text-muted);
 }
 
-.search-panel {
-	margin-top: 1rem;
-	padding: 1.25rem;
+.search-inline {
+	padding: 0.6rem;
 	border: 1px solid var(--border);
 	border-radius: var(--radius-lg);
 	background: var(--surface-card);
 	box-shadow: var(--shadow-soft);
-}
-
-.search-label {
-	display: block;
-	font-family: var(--font-heading);
-	font-weight: 600;
-	margin-bottom: 0.6rem;
 }
 
 .search-input-row {
@@ -213,6 +254,7 @@ const searchConfigScript = escapeForScript({
 	font-size: 1rem;
 	background: var(--surface-elevated);
 	color: var(--text-base);
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--surface-elevated) 70%, var(--border));
 }
 
 .search-input:focus {
@@ -220,12 +262,22 @@ const searchConfigScript = escapeForScript({
 	outline-offset: 2px;
 }
 
+.search-input-row .pill {
+	border-radius: var(--radius-pill);
+	box-shadow: none;
+}
+
+.search-inline:focus-within {
+	border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
 .search-clear[hidden] {
 	display: none;
 }
 
 .search-count {
-	margin: 0.8rem 0 0;
+	margin: 0.6rem 0 0;
 	color: var(--text-muted);
 	font-size: 0.95rem;
 }
@@ -240,11 +292,13 @@ const searchConfigScript = escapeForScript({
 	color: var(--text-muted);
 }
 
-@media (max-width: 600px) {
-	.search-panel {
-		padding: 1rem;
-	}
+.feed-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.9rem;
+}
 
+@media (max-width: 600px) {
 	.search-input-row {
 		flex-direction: column;
 		align-items: stretch;
