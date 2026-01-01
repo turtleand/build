@@ -1,35 +1,35 @@
 ---
-title: "Como los passkeys dependen de la firma con clave privada y publica"
-description: "Una explicacion para ingenieros de como la firma criptografica permite que los passkeys autentiquen usuarios usando la posesion de la clave en lugar de contrasenas."
+title: "Cómo los passkeys dependen de la firma con clave privada y pública"
+description: "Una explicación para ingenieros de cómo la firma criptográfica permite que los passkeys autentiquen usuarios usando la posesión de la clave en lugar de contraseñas."
 date: 2026-01-01
 tags: ["cryptography", "security"]
 featured: true
 draft: false
 image:
   src: /images/posts/security.svg
-  alt: "Escudo y llave que simbolizan la firma criptografica"
+  alt: "Escudo representando seguridad"
 locale: es
 translationKey: passkeys-private-public-key
 slug: 2026-01-01-passkeys-private-public-key-es
 ---
 
-Este articulo explica de forma simple como la criptografia de clave publica y privada se usa para **firmar mensajes** y luego **verificar** esas firmas. El objetivo es construir la intuicion correcta para ingenieros y lectores tecnicos que quieren entender *que ocurre realmente* cuando sistemas como los passkeys dependen de la firma criptografica.
+Este artículo explica de forma simple cómo la criptografía de clave pública y privada se usa para **firmar mensajes** y luego **verificar** esas firmas. El objetivo es construir la intuición correcta para ingenieros y lectores técnicos que quieren entender *qué ocurre realmente* cuando sistemas como los passkeys dependen de la firma criptográfica.
 
 ---
 
 ## El problema central
 
-Cuando un sistema recibe un mensaje, a menudo necesita responder una pregunta muy especifica:
+Cuando un sistema recibe un mensaje, a menudo necesita responder una pregunta muy específica:
 
 > ¿Este mensaje exacto proviene de alguien que posee una clave privada determinada?
 
-Esto *no* trata sobre secreto. El mensaje puede ser publico. Lo importante es la **autenticidad** y la **integridad**.
+Esto *no* trata sobre secreto. El mensaje puede ser público. Lo importante es la **autenticidad** y la **integridad**.
 
 ---
 
 ## El par de claves
 
-La criptografia de clave publica siempre comienza con un **par de claves**:
+La criptografía de clave pública siempre comienza con un **par de claves**:
 
 * **Clave privada**
 
@@ -37,16 +37,16 @@ La criptografia de clave publica siempre comienza con un **par de claves**:
   * Se almacena de forma segura
   * Nunca se comparte
 
-* **Clave publica**
+* **Clave pública**
 
   * Se comparte libremente
   * Se almacena en servidores u otras partes
 
-Las claves estan relacionadas matematicamente, pero en un solo sentido: conocer la clave publica no permite derivar la clave privada.
+Las claves están relacionadas matemáticamente, pero en un solo sentido: conocer la clave pública no permite derivar la clave privada.
 
 ---
 
-## Que significa "firmar un mensaje"
+## Qué significa "firmar un mensaje"
 
 Firmar **no** significa encriptar el mensaje original.
 
@@ -66,18 +66,18 @@ La firma demuestra dos cosas a la vez:
 
 ## Paso 1 — Hashear el mensaje
 
-Los mensajes pueden tener cualquier tamano, pero los algoritmos criptograficos trabajan con entradas de tamano fijo. Para resolverlo, el mensaje se pasa por una **funcion hash**.
+Los mensajes pueden tener cualquier tamaño, pero los algoritmos criptográficos trabajan con entradas de tamaño fijo. Para resolverlo, el mensaje se pasa por una **función hash**.
 
 Una funcion hash:
 
-* Produce una salida de tamano fijo
+* Produce una salida de tamaño fijo
 * Siempre da el mismo resultado para la misma entrada
 * Cambia por completo si la entrada cambia aunque sea un poco
 
 Ejemplo:
 
 ```
-Mensaje: "Desafio de inicio de sesion: 938472"
+Mensaje: "Desafío de inicio de sesión: 938472"
 Hash:    8F3A91...
 ```
 
@@ -98,7 +98,7 @@ firma = FIRMAR(hash, clave_privada)
 Propiedades importantes:
 
 * Solo la clave privada puede producir esta firma
-* La firma esta ligada al hash exacto
+* La firma está ligada al hash exacto
 * Cambiar el mensaje rompe la firma
 
 Los esquemas modernos agregan aleatoriedad y formato en este paso para evitar ataques, pero la idea sigue siendo la misma.
@@ -107,7 +107,7 @@ Los esquemas modernos agregan aleatoriedad y formato en este paso para evitar at
 
 ## Paso 3 — Enviar mensaje y firma
 
-El firmante envia:
+El firmante envía:
 
 * El mensaje original (o un desafio conocido)
 * La firma
@@ -116,14 +116,14 @@ La clave privada **nunca** se transmite.
 
 ---
 
-## Paso 4 — Verificar con la clave publica
+## Paso 4 — Verificar con la clave pública
 
-La verificacion es la operacion espejo que realiza el receptor.
+La verificación es la operación espejo que realiza el receptor.
 
 El verificador:
 
 1. Hashea el mensaje recibido
-2. Usa la clave publica para comprobar la firma
+2. Usa la clave pública para comprobar la firma
 3. Confirma que ambos resultados coinciden
 
 Conceptualmente:
@@ -136,20 +136,20 @@ si hash_esperado == hash_verificado:
     la firma es valida
 ```
 
-La clave publica no revela la clave privada. Solo puede responder una pregunta:
+La clave pública no revela la clave privada. Solo puede responder una pregunta:
 
-> ¿Esta firma es matematicamente consistente con este mensaje y esta clave publica?
+> ¿Esta firma es matemáticamente consistente con este mensaje y esta clave pública?
 
 ---
 
-## Por que esto funciona
+## Por qué esto funciona
 
-Las matematicas detras de la criptografia de clave publica son intencionalmente asimetricas:
+Las matemáticas detrás de la criptografía de clave pública son intencionalmente asimétricas:
 
-* Crear una firma requiere informacion secreta
-* Verificar una firma es facil y publico
+* Crear una firma requiere información secreta
+* Verificar una firma es fácil y público
 
-Esta asimetria hace que la falsificacion sea inviable mientras mantiene la verificacion barata y escalable.
+Esta asimetría hace que la falsificación sea inviable mientras mantiene la verificación barata y escalable.
 
 ---
 
@@ -165,11 +165,11 @@ Si se requiere secreto, se usa cifrado *ademas* de la firma, no en lugar de ella
 
 ---
 
-## Por que los sistemas modernos usan firma
+## Por qué los sistemas modernos usan firma
 
-La firma criptografica es un bloque central detras de los **passkeys**, donde los dispositivos prueban la posesion de una clave privada sin compartir secretos.
+La firma criptográfica es un bloque central detrás de los **passkeys**, donde los dispositivos prueban la posesión de una clave privada sin compartir secretos.
 
-Este enfoque permite que los sistemas se basen en **pruebas matematicas**, en lugar de contrasenas o memoria humana.
+Este enfoque permite que los sistemas se basen en **pruebas matemáticas**, en lugar de contraseñas o memoria humana.
 
 ---
 
@@ -177,6 +177,6 @@ Este enfoque permite que los sistemas se basen en **pruebas matematicas**, en lu
 
 Firmar un mensaje significa:
 
-> Convertir un mensaje en una huella digital y usar una clave privada para producir una prueba que cualquiera pueda verificar despues usando la clave publica correspondiente.
+> Convertir un mensaje en una huella digital y usar una clave privada para producir una prueba que cualquiera pueda verificar después usando la clave pública correspondiente.
 
-Esta idea simple sustenta la mayoria de los sistemas seguros modernos.
+Esta idea simple sustenta la mayoría de los sistemas seguros modernos.

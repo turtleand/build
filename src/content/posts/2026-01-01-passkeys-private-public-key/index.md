@@ -7,7 +7,7 @@ featured: true
 draft: false
 image:
   src: /images/posts/security.svg
-  alt: "Shield and key symbolizing cryptographic signing"
+  alt: "Shield symbolizing security"
 locale: en
 translationKey: passkeys-private-public-key
 ---
