@@ -10,7 +10,7 @@ image:
   alt: "Escudo y llave que simbolizan la firma criptografica"
 locale: es
 translationKey: passkeys-private-public-key
-slug: 2026-01-01-passkeys-private-public-key
+slug: 2026-01-01-passkeys-private-public-key-es
 ---
 
 Este articulo explica de forma simple como la criptografia de clave publica y privada se usa para **firmar mensajes** y luego **verificar** esas firmas. El objetivo es construir la intuicion correcta para ingenieros y lectores tecnicos que quieren entender *que ocurre realmente* cuando sistemas como los passkeys dependen de la firma criptografica.
