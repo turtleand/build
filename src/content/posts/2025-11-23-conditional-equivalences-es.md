@@ -3,7 +3,7 @@ title: "Mapeo de condicionales de programación a compuertas lógicas"
 description: "Cómo los if/else se corresponden con expresiones booleanas, compuertas lógicas y por qué se pueden reordenar las cláusulas."
 date: 2025-11-23
 tags: ["logic", "fundamentals"]
-featured: true
+featured: false
 draft: false
 image:
   src: /images/posts/logic-gates.svg

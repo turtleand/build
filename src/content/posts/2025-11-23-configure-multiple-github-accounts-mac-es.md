@@ -3,7 +3,7 @@ title: "Configurar múltiples cuentas de Github en Mac"
 description: "Utiliza múltiples cuentas de GitHub en el mismo Mac usando SSH y configuradas por repositorio."
 date: 2025-11-23
 tags: ["git", "github", "mac"]
-featured: true
+featured: false
 draft: false
 image:
   src: /images/posts/github-mark.svg

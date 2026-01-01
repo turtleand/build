@@ -3,7 +3,7 @@ title: "Set up Multiple Github accounts on Mac"
 description: "Configure multiple GitHub accounts on the same Mac using SSH keys and per-repository settings"
 date: 2025-11-23
 tags: ["git", "github", "mac"]
-featured: true
+featured: false
 draft: false
 image:
   src: /images/posts/github-mark.svg
