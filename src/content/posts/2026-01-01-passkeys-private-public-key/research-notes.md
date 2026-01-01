@@ -8,7 +8,7 @@ draft: false
 locale: en
 translationKey: passkeys-private-public-key
 isResearchNotes: true
-slug: "passkeys-private-public-key"
+slug: "2026-01-01-passkeys-private-public-key-research-notes"
 ---
 
 ```python file=./sandbox/encript.py
