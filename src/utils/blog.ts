@@ -66,7 +66,13 @@ export const buildTagSummaries = (posts: PostEntry[]): TagSummary[] => {
   }));
 };
 
-export const findTranslationForLocale = (posts: PostEntry[], translationKey: string | undefined, locale: Locale) => {
+export const findTranslationForLocale = (posts: PostEntry[], sourcePost: PostEntry, locale: Locale) => {
+	const translationKey = sourcePost.data.translationKey;
 	if (!translationKey) return undefined;
-	return posts.find((post) => post.data.translationKey === translationKey && post.data.locale === locale);
+	return posts.find(
+		(post) =>
+			post.data.translationKey === translationKey &&
+			post.data.locale === locale &&
+			post.data.isResearchNotes === sourcePost.data.isResearchNotes
+	);
 };

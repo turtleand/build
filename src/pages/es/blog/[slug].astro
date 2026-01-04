@@ -13,7 +13,7 @@ export async function getStaticPaths() {
 	const posts = sortPosts(allPosts.filter(filterByLocale(locale)));
 
 	return posts.map((post) => {
-		const translated = findTranslationForLocale(allPosts, post.data.translationKey, 'en');
+		const translated = findTranslationForLocale(allPosts, post, 'en');
 		const researchNotes =
 			!post.data.isResearchNotes && post.data.translationKey
 				? allPosts.find(
