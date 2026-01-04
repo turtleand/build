@@ -26,9 +26,9 @@ const image = post.data.image;
 	<a class="card-link" href={buildHref(`/blog/${slug}`)} aria-label={`${readMoreLabel}: ${post.data.title}`}>
 		{variant === 'list' && (
 			image ? (
-				<img class="post-thumb" src={image.src} alt={image.alt} loading="lazy" />
+				<img class="post-thumb post-thumb--image" src={image.src} alt={image.alt} loading="lazy" />
 			) : (
-				<div class="post-thumb" aria-hidden="true"></div>
+				<div class="post-thumb post-thumb--placeholder" aria-hidden="true"></div>
 			)
 		)}
 		<div class="post-content">
@@ -106,9 +106,16 @@ const image = post.data.image;
 	width: 64px;
 	height: 64px;
 	border-radius: var(--radius-md);
-	background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 45%, transparent), var(--surface-contrast));
 	flex-shrink: 0;
 	object-fit: cover;
+}
+
+.post-thumb--image {
+	background: transparent;
+}
+
+.post-thumb--placeholder {
+	background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 45%, transparent), var(--surface-contrast));
 }
 
 .post-content {
