@@ -14,7 +14,16 @@ export const excludeResearchNotes = (post: PostEntry) => !post.data.isResearchNo
 
 export const sortPosts = (posts: PostEntry[]) => [...posts].sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 
-export const getPostSlug = (post: PostEntry) => post.data.slug?.trim() || post.slug;
+export const getPostSlug = (post: PostEntry) => {
+	const entrySlug = typeof post.slug === 'string' ? post.slug.trim() : '';
+	if (entrySlug) return entrySlug;
+
+	const dataSlug = typeof post.data.slug === 'string' ? post.data.slug.trim() : '';
+	if (dataSlug) return dataSlug;
+
+	const id = typeof post.id === 'string' ? post.id.trim() : '';
+	return id.replace(/\.md$/, '').replace(/\/index$/, '');
+};
 
 export const formatDate = (value: Date, locale: Locale) => formatDateForLocale(value, locale);
 

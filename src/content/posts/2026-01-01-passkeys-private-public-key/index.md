@@ -10,6 +10,7 @@ image:
   alt: "Shield symbolizing security"
 locale: en
 translationKey: passkeys-private-public-key
+slug: 2026-01-01-passkeys-private-public-key
 ---
 
 This article explains simply how **private and public key cryptography** is used to **sign messages** and later **verify** those signatures. The goal is to build correct intuition for engineers and technical readers who want to understand *what actually happens* when systems like passkeys rely on cryptographic signing.
