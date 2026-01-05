@@ -3,7 +3,7 @@ title: "How Passkeys Rely on Private & Public Key Signing"
 description: "An engineer-friendly explanation of how cryptographic signing enables passkeys to authenticate users using key ownership instead of passwords."
 date: 2026-01-01
 tags: ["cryptography", "security"]
-featured: true
+featured: false
 draft: false
 image:
   src: /images/posts/security.svg
