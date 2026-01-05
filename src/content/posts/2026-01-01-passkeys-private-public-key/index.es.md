@@ -3,7 +3,7 @@ title: "Cómo los passkeys dependen de la firma con clave privada y pública"
 description: "Una explicación para ingenieros de cómo la firma criptográfica permite que los passkeys autentiquen usuarios usando la posesión de la clave en lugar de contraseñas."
 date: 2026-01-01
 tags: ["cryptography", "security"]
-featured: true
+featured: false
 draft: false
 image:
   src: /images/posts/security.svg
