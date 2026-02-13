@@ -116,6 +116,7 @@ const randomArticleLabel = dictionary.randomArticleModal?.label ?? "Choosing a r
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<script is:inline set:html={themeScript} />
 		<slot name="head" />
+		<slot name="jsonld" />
 	</head>
 	<body class="site-shell" data-site-base={base}>
 		<header class="site-header">
