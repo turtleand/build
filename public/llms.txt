@@ -1,0 +1,17 @@
+# Turtleand Build
+
+> Engineering fundamentals, software craft, and deep technical understanding.
+
+## Articles
+- [Spying Without Replacing with mocker.spy](https://build.turtleand.com/blog/2026-02-12-mocker-spy-python/): How to watch real functions without faking them.
+- [Dependency Injection](https://build.turtleand.com/blog/2026-02-02-dependency-injection-python/): Understanding dependency injection through practical Flask examples and avoiding common pitfalls.
+- [Testing the Decorator Pattern](https://build.turtleand.com/blog/2026-01-04-testing-decorator/): Understand decorators as function composition and test them safely.
+- [How Passkeys Rely on Private & Public Key Signing](https://build.turtleand.com/blog/2026-01-01-passkeys-private-public-key/): An engineer-friendly explanation of how cryptographic signing enables passkeys to authenticate users using key ownership instead of passwords.
+- [Patching the Right Thing with mocker](https://build.turtleand.com/blog/2025-11-29-mocker-python/): A quick tour on why “patch where it’s used” matters.
+- [Mapping Programming Conditionals to Logic Gates](https://build.turtleand.com/blog/2025-11-23-conditional-equivalences/): How if/else correspond to boolean expressions, logic gates, and why clauses can be safely reordered.
+- [Set up Multiple Github accounts on Mac](https://build.turtleand.com/blog/2025-11-23-configure-multiple-github-accounts-mac/): Configure multiple GitHub accounts on the same Mac using SSH keys and per-repository settings
+
+## About
+Written by Turtleand — exploring engineering fundamentals with clarity and depth.
+- Portal: https://turtleand.com
+- GitHub: https://github.com/turtleand

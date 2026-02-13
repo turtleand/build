@@ -158,6 +158,16 @@ document.addEventListener('DOMContentLoaded', () => {
 >
 	<Fragment slot="head">
 		{canonical && <link rel="canonical" href={canonical} />}
+		<script type="application/ld+json" set:html={JSON.stringify({
+			"@context": "https://schema.org",
+			"@type": "Article",
+			"headline": post.data.title,
+			"description": post.data.description,
+			"datePublished": post.data.date instanceof Date ? post.data.date.toISOString() : post.data.date,
+			"author": { "@type": "Person", "name": "Turtleand", "url": "https://turtleand.com" },
+			"publisher": { "@type": "Person", "name": "Turtleand", "url": "https://turtleand.com" },
+			"mainEntityOfPage": canonical || `https://build.turtleand.com/blog/${getPostSlug(post)}/`
+		})} />
 	</Fragment>
 	{hasTimeline && <script is:inline set:html={timelineToggleScript} />}
 	{researchNotesScript && <script is:inline set:html={researchNotesScript} />}
