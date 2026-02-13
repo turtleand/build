@@ -39,3 +39,4 @@ test-results/
 pending_notifications.txt
 
 *.pyc
+.claude/
