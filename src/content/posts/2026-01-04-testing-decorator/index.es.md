@@ -3,7 +3,7 @@ title: "Testeando el patrón Decorator"
 description: "Entiende los decoradores como composición de funciones y pruébalos de forma segura."
 date: 2026-01-04
 tags: ["design patterns"]
-featured: true
+featured: false
 draft: false
 image:
   src: /images/posts/go.svg

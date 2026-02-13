@@ -3,7 +3,7 @@ title: "Testing the Decorator Pattern"
 description: "Understand decorators as function composition and test them safely."
 date: 2026-01-04
 tags: ["design patterns"]
-featured: true
+featured: false
 draft: false
 image:
   src: /images/posts/go.svg

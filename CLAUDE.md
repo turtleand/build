@@ -2,7 +2,7 @@
 
 ## Project overview
 
-Astro 5 multilingual tech blog (English + Spanish). Static site with content collections, tag system, pagination, and client-side search via Fuse.js.
+Astro multilingual tech blog (English + Spanish). Static site with content collections, tag system, pagination, and client-side search via Fuse.js.
 
 ## Commands
 

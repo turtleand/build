@@ -3,7 +3,7 @@ title: "Inyección de Dependencias"
 description: "Comprendiendo la inyección de dependencias a través de ejemplos prácticos de Flask y evitando errores comunes."
 date: 2026-02-02
 tags: ["python", "design patterns"]
-featured: true
+featured: false
 draft: false
 image:
   src: /images/posts/python-logo.svg

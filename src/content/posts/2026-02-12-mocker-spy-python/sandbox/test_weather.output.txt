@@ -1,0 +1,10 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.0, pytest-9.0.2, pluggy-1.6.0 -- /usr/local/opt/python@3.13/bin/python3.13
+rootdir: /mocker-spy-python/sandbox
+plugins: mock-3.15.1
+collecting ... collected 2 items
+
+test_weather.py::test_spy_where_used PASSED                              [ 50%]
+test_weather.py::test_spy_wrong_target PASSED                            [100%]
+
+============================== 2 passed in 0.03s ===============================

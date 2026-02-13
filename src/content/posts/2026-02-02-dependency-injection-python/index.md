@@ -3,7 +3,7 @@ title: "Dependency Injection"
 description: "Understanding dependency injection through practical Flask examples and avoiding common pitfalls."
 date: 2026-02-02
 tags: ["python", "design patterns"]
-featured: true
+featured: false
 draft: false
 image:
   src: /images/posts/python-logo.svg
