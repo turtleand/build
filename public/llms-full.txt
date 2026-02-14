@@ -1,0 +1,1110 @@
+# Turtleand Build — Full Content
+
+> All posts concatenated for AI consumption.
+
+---
+
+# Spying Without Replacing with mocker.spy
+
+> How to watch real functions without faking them.
+
+Published: 2026-02-12
+URL: https://build.turtleand.com/blog/2026-02-12-mocker-spy-python/
+
+--------------------------
+
+Sometimes you want to verify that a function was called with the right arguments **without replacing it** with a fake. That's what `mocker.spy` does.
+
+Where [`mocker.patch`](/blog/2025-11-29-mocker-python) swaps the real function for a `MagicMock`, `mocker.spy` wraps the real function so it still runs normally — but the wrapper records every call, argument, and return value.
+
+---
+
+## 1. Code Example
+
+**converter.py**
+
+```python file=./sandbox/converter.py
+```
+
+**weather.py**
+
+```python file=./sandbox/weather.py
+```
+
+`weather.py` does `from converter import celsius_to_fahrenheit`, which creates a **local name binding** inside the `weather` module.
+
+## 2. What should be spied?
+
+The same ["patch where it's used"](/blog/2025-11-29-mocker-python#2-what-should-be-the-target) rule applies to spies.
+
+`mocker.spy(obj, name)` works via `setattr` — it replaces `obj.name` with a wrapper that delegates to the original function. If the calling module imported the function with `from X import Y`, the name binding lives in **the caller's namespace**, not in the original module.
+
+**Correct** — spy where the function is used:
+
+```python
+mocker.spy(weather, "celsius_to_fahrenheit")
+```
+
+**Wrong** — spy where the function is defined:
+
+```python
+mocker.spy(converter, "celsius_to_fahrenheit")
+```
+
+The wrong target replaces the attribute in `converter`, but `weather.celsius_to_fahrenheit` still points directly to the unwrapped function — the spy sees nothing.
+
+## 3. Tests
+
+**test_weather.py**
+
+```python file=./sandbox/test_weather.py
+```
+
+**Test output**
+
+```text file=./sandbox/test_weather.output.txt
+```
+
+The first test spies on the correct target and verifies the call was tracked. The second test shows that spying on the definition site misses the call entirely — `spy.call_count` stays at zero.
+
+## 4. Spy-specific attributes
+
+Beyond the standard `MagicMock` assertions (`assert_called_once_with`, `call_args`, `call_count`, …), a spy adds:
+
+* **`spy.spy_return`** — the return value of the last real call.
+* **`spy.spy_exception`** — the exception raised by the last real call (or `None`).
+
+These let you inspect what the **real** function did, not just that it was called.
+
+---
+
+# Dependency Injection
+
+> Understanding dependency injection through practical Flask examples and avoiding common pitfalls.
+
+Published: 2026-02-02
+URL: https://build.turtleand.com/blog/2026-02-02-dependency-injection-python/
+
+Dependency injection is a design pattern where objects receive their dependencies from external sources rather than creating them internally. While the concept sounds abstract, it solves concrete problems around testing, flexibility, and code organization.
+
+This article explains why dependency injection matters and shows how to implement it correctly in Flask applications using the `dependency-injector` library.
+
+---
+
+## 1. The Core Problem
+
+Consider a simple greeting service that retrieves user data:
+
+```python
+class GreetingService:
+    def __init__(self):
+        self.repo = UserRepository()  # Hard-coded dependency
+
+    def generate_greeting(self, user_id: int) -> str:
+        user = self.repo.get_user(user_id)
+        return f"Hello, {user.name}!"
+```
+
+This code has several issues:
+
+* **Testing is difficult**: You cannot test `GreetingService` without also creating a real `UserRepository`, which might require a database connection.
+* **Inflexible**: If you need to swap `UserRepository` for a different implementation (e.g., caching layer, mock for testing), you must modify the `GreetingService` code.
+* **Hidden dependencies**: By reading the code, you cannot immediately see that `GreetingService` depends on `UserRepository` without inspecting the constructor body.
+
+---
+
+## 2. The Solution: Inject Dependencies
+
+Instead of creating dependencies internally, we pass them in:
+
+```python
+class GreetingService:
+    def __init__(self, repo: UserRepository):
+        self.repo = repo  # Dependency is injected
+
+    def generate_greeting(self, user_id: int) -> str:
+        user = self.repo.get_user(user_id)
+        return f"Hello, {user.name}!"
+```
+
+Now:
+
+* **Testing is simple**: Pass a mock repository when testing.
+* **Flexible**: Swap implementations without changing `GreetingService`.
+* **Clear contract**: The constructor signature explicitly shows what the service needs.
+
+This is **constructor injection** — the most common form of dependency injection.
+
+---
+
+## 3. Why Use a DI Container?
+
+For small applications, manual injection works fine:
+
+```python
+repo = UserRepository()
+service = GreetingService(repo)
+```
+
+But as applications grow, managing these dependencies manually becomes tedious:
+
+```python
+# Deep dependency chains become unmanageable
+db = Database()
+cache = Cache()
+repo = UserRepository(db, cache)
+validator = UserValidator()
+service = GreetingService(repo, validator)
+notifier = EmailNotifier()
+controller = UserController(service, notifier)
+# ... and so on
+```
+
+A **DI container** automates this wiring. You declare your dependencies once, and the container handles instantiation and injection.
+
+---
+
+## 4. Practical Example: Flask with dependency-injector
+
+Let's build a Flask application with dependency injection using the `dependency-injector` library.
+
+### 4.1. Define Your Services
+
+**services.py**
+
+```python
+class UserRepository:
+    def get_user_name(self, user_id: int):
+        users = {1: "Alice", 2: "Bob"}
+        return users.get(user_id, "User Not Found")
+
+class GreetingService:
+    def __init__(self, repo: UserRepository):
+        self.repo = repo
+
+    def generate_greeting(self, user_id: int):
+        name = self.repo.get_user_name(user_id)
+        return f"Hello {name}!"
+```
+
+### 4.2. Create a Container
+
+The container defines how to create and wire your dependencies.
+
+**containers.py**
+
+```python
+from dependency_injector import containers, providers
+from . import services
+
+class Container(containers.DeclarativeContainer):
+    # Configure wiring to point to the views module
+    wiring_config = containers.WiringConfiguration(modules=[".views"])
+
+    user_repo = providers.Singleton(services.UserRepository)
+
+    greeting_service = providers.Factory(
+        services.GreetingService,
+        repo=user_repo,
+    )
+```
+
+Key points:
+
+* `wiring_config`: Declares which modules contain injection points (routes with `@inject`).
+* `Singleton`: One instance shared across the application.
+* `Factory`: Creates a new instance each time it's requested.
+* `repo=user_repo`: Wires the `UserRepository` into `GreetingService`.
+
+### 4.3. Define Routes in a Separate Views Module
+
+**views.py**
+
+```python
+from flask import jsonify
+from dependency_injector.wiring import inject, Provide
+from .services import GreetingService
+from .containers import Container
+
+@inject
+def index(user_id: int, service: GreetingService = Provide[Container.greeting_service]):
+    message = service.generate_greeting(user_id)
+    return jsonify({"result": message})
+```
+
+### 4.4. Wire Everything Together in the App
+
+**app.py**
+
+```python
+from flask import Flask
+from .containers import Container
+from . import views
+
+def create_app():
+    # Initialize the DI container
+    container = Container()
+
+    app = Flask(__name__)
+    app.container = container
+
+    # Register routes from the views module
+    app.add_url_rule("/<int:user_id>", view_func=views.index)
+
+    return app
+
+if __name__ == "__main__":
+    app = create_app()
+    app.run(debug=True)
+```
+
+---
+
+## 5. Why This Works
+
+The `@inject` decorator and `Provide[...]` marker work together:
+
+1. When you define `service: GreetingService = Provide[Container.greeting_service]`, you're telling the DI framework: "Replace this parameter with an instance from the container."
+2. The `wiring_config` in the Container tells the framework which modules to scan for `@inject` decorators.
+3. When the container is instantiated, it automatically wires the specified modules.
+4. When the route is called, `service` is automatically a real `GreetingService` instance, not a `Provide` object.
+
+### Common Error: "AttributeError: 'Provide' object..."
+
+This error happens when wiring fails or the injection doesn't occur. The `Provide` marker was never replaced with a real object.
+
+**Common causes:**
+
+* Container was not instantiated.
+* The module containing `@inject` decorators is not listed in `wiring_config`.
+* Typo in the module path (e.g., `".views"` vs `"views"`).
+* The view function was never imported or registered.
+
+**The fix:** Use `wiring_config` in your Container class to declare which modules contain injection points. This is more reliable than manual wiring because the container handles it automatically when instantiated.
+
+---
+
+## 6. Key Takeaways
+
+Dependency injection solves real problems:
+
+* Makes testing easier by decoupling object creation from usage.
+* Makes dependencies explicit in constructor signatures.
+* Allows swapping implementations without changing code.
+
+---
+
+# Testing the Decorator Pattern
+
+> Understand decorators as function composition and test them safely.
+
+Published: 2026-01-04
+URL: https://build.turtleand.com/blog/2026-01-04-testing-decorator/
+
+# The Decorator Pattern and How to Test It
+
+## 1. What is the Decorator Pattern?
+
+The **decorator pattern** is a design pattern where you wrap an existing object or function with another component (the *decorator*) that:
+
+1. **Delegates** to the original (inner) object or function.
+2. **Adds behavior before and/or after** the inner call.
+3. Keeps the **same interface** as the inner component, so callers can use it transparently.
+
+The decorator does **not** replace the core logic; instead, it layers extra concerns on top, such as:
+
+* Logging
+* Caching
+* Authorization checks
+* Metrics / timing
+* Retry logic
+
+In code terms:
+
+* Let **A** be the inner/core function or service (already tested).
+* Let **D** be a decorator that wraps A.
+
+Conceptually:
+
+```python
+# Conceptual shape of a decorator
+
+def D(x):
+    input = k(x)                  # extra behavior before calling A
+    result_operation = A(x)       # delegate to the inner function
+    output = h(result_operation)  # extra behavior after calling A
+    return output                 # usually preserves A's return
+```
+
+The key points:
+
+* D **calls A** with the same arguments (or a controlled transformation).
+* D **preserves the contract** of A (same meaning of input/output), while layering extra behavior.
+
+---
+
+## 2. Simple Example (Function Composition View)
+
+Instead of a domain-specific example, we can think of the decorator pattern purely in terms of **function composition**.
+
+Let:
+
+* `A` be the **inner function** that is already fully tested and trusted.
+* `D` be the **decorator function** that wraps `A`.
+
+In mathematical terms:
+
+* `A: X → Y` (takes a value of type `X`, returns a value of type `Y`).
+* `D: X → Y` (same input and output types as `A`).
+
+A typical decorator adds some behavior *around* a call to `A`, but keeps the same external contract:
+
+> D(x) = h(A(k(x)))
+
+Where `k` and `h` represent optional extra behavior executed before and after the inner call.
+
+In Go, we can represent this idea with function types and a concrete numeric example.
+
+We define three functions:
+
+* `k: string → int`  (parse an integer from its digit-string form, e.g. "2" → 2)
+* `A: int → int`     (the trusted inner function, e.g. multiply by 2, 2 → 4)
+* `h: int → string`  (map an integer to its English word, e.g. 4 → "four")
+
+Then the decorated function `D` has the composed behavior:
+
+> D = h ∘ A ∘ k
+
+So for example:
+
+* `k("2") = 2`
+* `A(2) = 4`
+* `h(4) = "four"`
+
+and therefore:
+
+> D("2") = h(A(k("2"))) = "four".
+
+In Go, we can express this with function types:
+
+```go
+package decorator
+
+import "strconv"
+
+// InnerFunc is the type of the inner function: int -> int.
+type InnerFunc func(int) int
+
+// DecoratedFunc is the outer/decorated function: string -> string.
+// It takes a numeric string (e.g. "2") and returns the doubled value
+// as an English word (e.g. "four").
+type DecoratedFunc func(string) string
+
+// k parses a numeric string into an int.
+func k(s string) (int, error) {
+    return strconv.Atoi(s)
+}
+
+// h maps an int to a small English word representation.
+func h(n int) string {
+    words := map[int]string{
+        0:  "zero",
+        1:  "one",
+        2:  "two",
+        3:  "three",
+        4:  "four",
+        5:  "five",
+        6:  "six",
+        7:  "seven",
+        8:  "eight",
+        9:  "nine",
+        10: "ten",
+    }
+    if w, ok := words[n]; ok {
+        return w
+    }
+    return "" // empty if out of range, for simplicity
+}
+
+// A is our trusted inner function: it just multiplies by 2.
+func A(x int) int {
+    return x * 2
+}
+
+// Decorator wraps an InnerFunc and returns a DecoratedFunc
+// that implements D = h ∘ inner ∘ k.
+func Decorator(inner InnerFunc) DecoratedFunc {
+    return func(s string) string {
+        n, err := k(s)
+        if err != nil {
+            return "" // in a real system, you'd handle the error explicitly
+        }
+
+        doubled := inner(n) // A(n)
+        return h(doubled)   // h(A(k(s)))
+    }
+}
+```
+
+Here:
+
+* `inner` is our `A` (already fully tested).
+* `Decorator(inner)` produces a new function `D` that:
+
+  * Parses the input string to an `int` (`k`).
+  * Delegates to the inner numeric function `A`.
+  * Maps the resulting `int` back to a word (`h`).
+
+Even though the **types** of A and D differ (`int -> int` vs `string -> string`), the idea of composition is explicit: `D = h ∘ A ∘ k`.
+
+---
+
+## 3. How to Think About Testing a Decorator (with Composition)
+
+We assume:
+
+* The inner function **A** is **already fully tested and correct**.
+* The decorator **D** is implemented via composition as:
+
+  * `k` (string → int),
+  * the inner call `A` (int → int), and
+  * `h` (int → string).
+
+In composition notation, D is:
+
+> D = h ∘ A ∘ k
+
+If we trust A’s tests, then D can only be incorrect in one of three places:
+
+1. **How it calls A** (does it pass the right integer produced by `k`?).
+2. **How it handles or returns A’s result** (does `h` map the integer to the correct string?).
+3. **Its own extra behavior or error handling** (e.g. what happens when `k` fails to parse?).
+
+So our decorator tests focus on these concerns instead of re-testing A’s internal logic.
+
+---
+
+## 4. Concrete Testing Strategy in Go
+
+We now write tests for the `Decorator` function, assuming `A` itself is properly tested elsewhere.
+
+### 4.1. Test that the decorator calls the inner function with the correct integer
+
+We replace `inner` with a small test double that records the argument it receives. This lets us verify that the parsed value from `k` is what gets passed into the inner function.
+
+```go
+package decorator_test
+
+import (
+    "testing"
+
+    "example.com/yourmodule/decorator"
+)
+
+func TestDecorator_CallsInnerWithParsedInt(t *testing.T) {
+    called := false
+    var received int
+
+    inner := func(x int) int {
+        called = true
+        received = x
+        return 4 // arbitrary fixed value
+    }
+
+    d := decorator.Decorator(inner)
+
+    result := d("2") // k("2") should be 2
+
+    if !called {
+        t.Fatalf("expected inner to be called")
+    }
+    if received != 2 {
+        t.Fatalf("expected inner to be called with 2, got %d", received)
+    }
+    if result != "four" {
+        t.Fatalf("expected result 'four', got %q", result)
+    }
+}
+```
+
+This test checks the **delegation** and composition:
+
+* `"2"` is parsed to `2` by `k`.
+* The inner function receives `2`.
+* The final result goes through `h` (here, we expect `"four"`).
+
+### 4.2. Test that the decorator maps the inner result correctly via `h`
+
+Here we focus on the **output mapping** `h`. We control the inner function so that we know exactly which integer it returns, and we assert that the decorator converts it to the correct word.
+
+```go
+func TestDecorator_MapsInnerResultWithH(t *testing.T) {
+    inner := func(x int) int {
+        return 8 // regardless of input
+    }
+
+    d := decorator.Decorator(inner)
+
+    result := d("1") // k("1") = 1, inner(1) = 8, h(8) = "eight"
+
+    if result != "eight" {
+        t.Fatalf("expected 'eight', got %q", result)
+    }
+}
+```
+
+This test shows that whatever integer comes out of the inner function is passed through `h` correctly.
+
+### 4.3. Test the decorator's behavior on invalid input (error handling around `k`)
+
+Finally, we can test how the decorator behaves when `k` fails to parse the input (this is part of D’s extra responsibility, beyond A’s logic):
+
+```go
+func TestDecorator_InvalidInput(t *testing.T) {
+    inner := func(x int) int {
+        return x * 2
+    }
+
+    d := decorator.Decorator(inner)
+
+    result := d("not-a-number")
+
+    if result != "" {
+        t.Fatalf("expected empty string for invalid input, got %q", result)
+    }
+}
+```
+
+In a real system you might choose a different error-handling strategy (returning an error, panicking, etc.), but the key is that this behavior is **owned by the decorator**, not by A, and is tested separately.
+
+---
+
+## 5. Summary: Testing a Decorator When the Inner is Trusted
+
+When the inner function **A** is already well tested, and the decorator **D** only adds extra behavior around it:
+
+1. **Trust A's tests.** Do not duplicate them in decorator tests.
+2. **Test delegation:** D calls A with the correct arguments and frequency.
+3. **Test result preservation (or controlled modification):** D returns what A returns, or changes it in a well-defined, tested way.
+4. **Test the extra concern:** logging, caching, authorization, metrics, retries, etc.
+
+In other words, the decorator's tests should focus on:
+
+* How the decorator uses the inner function.
+* The new behavior the decorator introduces.
+
+Everything else (core business logic) remains the responsibility of A’s own test suite.
+
+---
+
+# How Passkeys Rely on Private & Public Key Signing
+
+> An engineer-friendly explanation of how cryptographic signing enables passkeys to authenticate users using key ownership instead of passwords.
+
+Published: 2026-01-01
+URL: https://build.turtleand.com/blog/2026-01-01-passkeys-private-public-key/
+
+This article explains simply how **private and public key cryptography** is used to **sign messages** and later **verify** those signatures. The goal is to build correct intuition for engineers and technical readers who want to understand *what actually happens* when systems like passkeys rely on cryptographic signing.
+
+---
+
+## The core problem
+
+When a system receives a message, it often needs to answer a very specific question:
+
+> Did this exact message come from someone who owns a particular private key?
+
+This is *not* about secrecy. The message itself can be public. What matters is **authenticity** and **integrity**.
+
+---
+
+## The key pair
+
+Public‑key cryptography always starts with a **key pair**:
+
+* **Private key**
+
+  * Secret
+  * Stored securely
+  * Never shared
+
+* **Public key**
+
+  * Shared freely
+  * Stored by servers or other parties
+
+The keys are mathematically related, but in a one‑way fashion: knowing the public key does not allow you to derive the private key.
+
+---
+
+## What “signing a message” really means
+
+Signing does **not** mean encrypting the original message.
+
+Instead, signing means:
+
+1. Creating a **fingerprint** of the message
+2. Using the private key to create a **proof** tied to that fingerprint
+
+The output is called a **signature**.
+
+The signature proves two things at once:
+
+* The message was not altered
+* The signer owns the private key
+
+---
+
+## Step 1 — Hash the message
+
+Messages can be any size, but cryptographic algorithms work with fixed‑size inputs. To solve this, the message is passed through a **hash function**.
+
+A hash function:
+
+* Produces a fixed‑size output
+* Always gives the same result for the same input
+* Changes completely if the input changes even slightly
+
+Example:
+
+```
+Message: "Login challenge: 938472"
+Hash:    8F3A91...
+```
+
+This hash is the message’s **digital fingerprint**.
+
+---
+
+## Step 2 — Sign the hash with the private key
+
+The private key is then used to transform the hash into a signature.
+
+Conceptually:
+
+```
+signature = SIGN(hash, private_key)
+```
+
+Important properties:
+
+* Only the private key can produce this signature
+* The signature is tied to the exact hash
+* Changing the message breaks the signature
+
+Modern schemes add randomness and formatting at this step to prevent attacks, but the idea remains the same.
+
+---
+
+## Step 3 — Send message and signature
+
+The signer sends:
+
+* The original message (or a known challenge)
+* The signature
+
+The private key is **never** transmitted.
+
+---
+
+## Step 4 — Verify with the public key
+
+Verification is the mirror operation performed by the receiver.
+
+The verifier:
+
+1. Hashes the received message
+2. Uses the public key to check the signature
+3. Confirms that both results match
+
+Conceptually:
+
+```
+expected_hash = HASH(message)
+verified_hash = VERIFY(signature, public_key)
+
+if expected_hash == verified_hash:
+    signature is valid
+```
+
+The public key does not reveal the private key. It can only answer one question:
+
+> Is this signature mathematically consistent with this message and this public key?
+
+---
+
+## Why this works
+
+The mathematics behind public‑key cryptography is intentionally asymmetric:
+
+* Creating a signature requires secret information
+* Verifying a signature is easy and public
+
+This asymmetry makes forgery infeasible while keeping verification cheap and scalable.
+
+---
+
+## What signing is *not*
+
+It is important to avoid common misconceptions:
+
+* Signing does **not** hide the message
+* Signing does **not** send the private key
+* Signing does **not** rely on shared secrets
+
+If secrecy is required, encryption is used *in addition* to signing, not instead of it.
+
+---
+
+## Why modern systems use signing
+
+Cryptographic signing is a core building block behind **passkeys**, where devices prove ownership of a private key without sharing secrets.
+
+This approach allows systems to rely on **mathematical proof**, rather than passwords or human memory.
+
+---
+
+## Final takeaway
+
+Signing a message means:
+
+> Turning a message into a fingerprint and using a private key to produce a proof that anyone can later verify using the matching public key.
+
+This simple idea underpins most modern secure systems.
+
+---
+
+# Patching the Right Thing with mocker
+
+> A quick tour on why “patch where it’s used” matters.
+
+Published: 2025-11-30
+URL: https://build.turtleand.com/blog/2025-11-29-mocker-python/
+
+--------------------------
+<!-- snippet-hash: a52723d3f46e94af33bc205dcc90e2a2de446e90 -->
+
+Short answer:
+`mocker` is a **pytest fixture** provided by the [`pytest-mock`](https://github.com/pytest-dev/pytest-mock) plugin.
+
+It provides a small helper object (usually called `mocker`) that wraps Python’s standard library [`unittest.mock`](https://docs.python.org/3/library/unittest.mock.html) so you can:
+
+* **Replace (“patch”) real objects** (functions, methods, attributes) with controllable `MagicMock` fakes.
+* **Track calls**: check how many times a fake ran, which arguments it saw, and related details.
+* **Automatically undo all patches** at the end of each test so your code returns to normal.
+
+---
+
+## 1. Code Example
+
+**email_gateway.py**
+
+```python file=./sandbox/email_gateway.py
+```
+
+
+**email_service.py**
+
+```python file=./sandbox/email_service.py
+```
+
+Because the high-level `notify_user` function imports `send_email` and closes over that name, tests patch `email_service.send_email`, instead of `email_gateway.send_email`.
+
+## 2. What should be the target?
+
+**Rule of thumb:**
+
+> Patch the **name visible inside the module under test**, not the original place where the object was first defined. In other words, patch “where it is used” instead of “where it is defined”.
+
+
+---
+
+## 3. A minimal custom PocketMocker
+
+Now let’s build a **mini version** of `mocker` to show all the moving parts.
+
+We won’t touch `unittest.mock.patch`; instead we’ll do the work manually with:
+
+* `importlib.import_module`
+* `getattr` / `setattr`
+* `unittest.mock.MagicMock`
+
+**pocket_mocker.py**
+
+```python file=./sandbox/pocket_mocker.py
+```
+
+### The low-level helpers explained
+
+* `importlib.import_module(module_path)`
+
+  * Takes a string such as `"email_service.send_email"` and returns the actual module object.
+  * Relies on Python’s import machinery and `sys.modules`.
+
+* `getattr(module, attr_name)`
+
+  * Reads an attribute on an object.
+  * Equivalent to `module.attr_name`.
+
+* `setattr(module, attr_name, replacement)`
+
+  * Sets an attribute on an object.
+  * Equivalent to `module.attr_name = replacement`.
+  * This is the literal “patch” step: we overwrite the original function with our fake.
+
+* `MagicMock(**kwargs)`
+
+  * Creates a flexible fake object that:
+
+    * Records calls (so you can assert later).
+    * Can be configured with `return_value` or `side_effect`.
+    * Supports attributes and methods dynamically.
+
+Building `PocketMocker` shows that `pytest-mock` plus `unittest.mock` are simply a nicer layer over this same core behavior.
+
+## Tests
+
+**test_email_service.py**
+
+```python file=./sandbox/test_email_service.py
+```
+
+**Test output**
+
+```text file=./sandbox/test_email_service.output.txt
+```
+
+The first test exercises the real `pytest-mock` fixture, while the second walks through the DIY implementation so you can trace every step.
+
+---
+
+# Mapping Programming Conditionals to Logic Gates
+
+> How if/else correspond to boolean expressions, logic gates, and why clauses can be safely reordered.
+
+Published: 2025-11-23
+URL: https://build.turtleand.com/blog/2025-11-23-conditional-equivalences/
+
+Conditionals are among the most common control‑flow structures in programming. Behind the scenes, they map cleanly onto Boolean algebra and digital logic. In fact, an `if / else` statement is functionally equivalent to a **2-to-1 multiplexer** (MUX): it selects one of two possible inputs based on a control signal.
+
+A key feature of this equivalence is that **the logic is reversible**. In boolean algebra, the order of OR branches does not matter; the meaning stays the same. In code, only one branch executes depending on the boolean condition. Because of this, both the code and its logic-gate representation can be reordered without changing the result.
+
+## If / else conditional
+
+```python
+class CarCrossingLogic:
+    def __init__(
+        self, 
+        traffic_light_is_green: bool, 
+        crossing_street_is_empty: bool, 
+        has_traffic_lights: bool
+    ):
+        self.traffic_light_is_green : bool = traffic_light_is_green
+        self.crossing_street_is_empty : bool = crossing_street_is_empty
+        self.has_traffic_lights : bool = has_traffic_lights
+
+    def can_cross(self) -> bool:
+        if self.has_traffic_lights:
+            return self.traffic_light_is_green
+        else:
+            return self.crossing_street_is_empty
+
+    def can_cross_reordered(self) -> bool:
+        # Logically equivalent; clauses are simply reordered
+        if not self.has_traffic_lights:
+            return self.crossing_street_is_empty
+        else:
+            return self.traffic_light_is_green
+```
+
+This method decides whether a car may cross an intersection.
+
+*If the intersection has traffic lights*, the rule is simple:
+
+> Cross only if the light is green.
+
+*If the intersection has no lights*, use the priority rule:
+
+> Cross only if the crossing street is empty.
+
+## Logic Gates: Multiplexer
+
+A multiplexer uses logic gates to select one of two possible inputs. Here, each rule is implemented with an AND gate, and the results are merged with an OR gate.
+
+Because `has_traffic_lights` and `¬has_traffic_lights` can't both be 1, only one path can activate at a time.
+
+This is precisely how a **2×1 multiplexer (MUX)** behaves.
+
+```text
+has_traffic_lights ─────┐
+                        ├── AND ───────────┐
+light_green ────────────┘                  │
+                                           ├── OR ──> can_cross
+has_traffic_lights ── NOT ──┐              │
+                            ├── AND ───────┘
+cross_empty ────────────────┘
+```
+
+### Reordered
+
+```text
+has_traffic_lights ── NOT ──┐
+                            ├── AND ───────────┐
+cross_empty ────────────────┘                  │
+                                               ├── OR ──> can_cross
+has_traffic_lights ─────┐                      │
+                        ├── AND ───────────────┘
+light_green ────────────┘
+```
+
+## Boolean Expression 
+
+```isabelle
+can_cross =
+    (has_traffic_lights ∧ light_green) 
+                    ∨ 
+    (¬ has_traffic_lights ∧ cross_empty)
+```
+
+### Reordered
+
+```isabelle
+can_cross_reordered =
+    (¬ has_traffic_lights ∧ cross_empty) 
+                    ∨ 
+    (has_traffic_lights ∧ light_green)
+```
+
+## Truth Table
+
+```
+| has_traffic_lights | light_green | cross_empty | can_cross |
+| ------------------ | ----------- | ----------- | --------- |
+| 0                  | 0           | 0           | 0         |
+| 0                  | 0           | 1           | 1         |
+| 0                  | 1           | 0           | 0         |
+| 0                  | 1           | 1           | 1         |
+| 1                  | 0           | 0           | 0         |
+| 1                  | 0           | 1           | 0         |
+| 1                  | 1           | 0           | 1         |
+| 1                  | 1           | 1           | 1         |
+```
+
+---
+
+# Set up Multiple Github accounts on Mac
+
+> Configure multiple GitHub accounts on the same Mac using SSH keys and per-repository settings
+
+Published: 2025-11-23
+URL: https://build.turtleand.com/blog/2025-11-23-configure-multiple-github-accounts-mac/
+
+## Objective
+
+Set up two GitHub identities on the same Mac — one as your global default, and another isolated per‑repository using SSH aliases — so you can switch accounts seamlessly without conflicts:
+
+* One GitHub account configured globally (`~/.gitconfig`).
+* Another GitHub account configured **per-repository** or via **SSH alias**, so they don’t conflict.
+
+---
+
+## Step 1: Check your current setup
+
+```bash
+git config --global user.name
+git config --global user.email
+cat ~/.ssh/config  # optional
+```
+
+That’s your *primary* (default) GitHub identity.
+
+---
+
+## Step 2: Create a new SSH key for the second account
+
+For example, if your new GitHub account is **personal**, do:
+
+```bash
+ssh-keygen -t ed25519 -C "your_other_email@example.com" -f ~/.ssh/id_ed25519_personal
+```
+
+When asked for a passphrase, you can leave it empty or use one (recommended for security).
+
+---
+
+## Step 3: Add that key to your SSH agent
+
+```bash
+eval "$(ssh-agent -s)"
+ssh-add --apple-use-keychain ~/.ssh/id_ed25519_personal
+```
+
+This stores the key in macOS Keychain.
+
+---
+
+## Step 4: Add the **public key** to your other GitHub account
+
+Copy and paste it into GitHub → Settings → SSH and GPG keys → **New SSH key**
+
+```bash
+cat ~/.ssh/id_ed25519_personal.pub
+```
+
+---
+
+## Step 5: Create SSH config aliases
+
+Edit (or create) your `~/.ssh/config` file:
+
+```bash
+# Default (work) GitHub
+Host github.com
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/id_ed25519
+  AddKeysToAgent yes
+  UseKeychain yes
+
+# Personal GitHub
+Host github-personal
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/id_ed25519_personal
+  AddKeysToAgent yes
+  UseKeychain yes
+```
+
+This lets you use **`github-personal`** as a fake hostname for the second identity.
+
+---
+
+## Step 6: Clone repositories using the alias
+
+For the *personal* account:
+
+```bash
+git clone git@github-personal:username/repo.git
+```
+
+For the *default/work* one:
+
+```bash
+git clone git@github.com:workuser/repo.git
+```
+
+Each uses its own key.
+
+---
+
+## Step 7: Set per-repo identity (optional but recommended)
+
+Inside the personal repo:
+
+```bash
+cd ~/code/personal-repo
+git config user.name "Your Personal Name"
+git config user.email "your_other_email@example.com"
+```
+
+This ensures commits are attributed to the right GitHub account.

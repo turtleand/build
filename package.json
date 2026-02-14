@@ -4,7 +4,8 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "node scripts/snippet-sync.mjs --watch & astro dev",
-    "build": "node scripts/snippet-sync.mjs && astro build",
+    "generate:llms": "node scripts/generate-llms.mjs",
+    "build": "node scripts/snippet-sync.mjs && node scripts/generate-llms.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "test": "playwright test",

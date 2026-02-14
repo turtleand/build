@@ -1,4 +1,4 @@
-# CLAUDE.md — turtleand-universe/build
+# CLAUDE.md — Turtleand Build
 
 ## Project overview
 
@@ -86,3 +86,38 @@ Playwright E2E tests in `tests/`. Config in `playwright.config.ts`. Tests auto-s
 npm test                    # Run all tests
 npx playwright test --ui    # Interactive UI mode
 ```
+
+## Agent-Friendly PR Checklist
+Every content PR must:
+- [ ] Post frontmatter complete: title, description, date, tags, locale
+- [ ] Description is meaningful (agents use it to decide relevance)
+- [ ] Build succeeds (llms.txt and llms-full.txt auto-generated)
+- [ ] JSON-LD Article schema auto-included via PostPage template
+- [ ] Author always "Turtleand" (pseudonymous, no real name, no LinkedIn)
+
+## Bot Translation Layer
+- `/llms.txt` — Auto-generated at build time listing all English posts
+- `/llms-full.txt` — Auto-generated, all English post content concatenated
+- `/_headers` — Content Signals
+- JSON-LD Article in every post page
+
+## Auto-Generation
+`scripts/generate-llms.mjs` runs before every build:
+- Reads `src/content/posts/**/*.md` (English, non-draft, non-research-notes only)
+- Generates `public/llms.txt` (index) and `public/llms-full.txt` (full content)
+- No manual updating needed — just add posts normally
+
+## Agent-Friendly PR Checklist
+Every content PR must:
+- [ ] Post frontmatter complete: title, description, date, locale, tags
+- [ ] Description is meaningful (agents use it to decide relevance)
+- [ ] Build succeeds (llms.txt and llms-full.txt auto-generated)
+- [ ] JSON-LD Article schema auto-included via layout
+- [ ] Author always "Turtleand" (pseudonymous, no real name, no LinkedIn)
+
+## Bot Translation Layer
+- `/llms.txt` — Auto-generated at build time listing all posts
+- `/llms-full.txt` — Auto-generated, all post content concatenated
+- `/_headers` — Content Signals (ai-train=yes, search=yes, ai-input=yes)
+- JSON-LD Article schema in blog post layout
+- Auto-generation: `scripts/generate-llms.mjs` runs before `astro build`
