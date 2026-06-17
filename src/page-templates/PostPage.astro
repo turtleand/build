@@ -1,4 +1,5 @@
 ---
+import { render } from "astro:content";
 import BlogLayout from "../layouts/BlogLayout.astro";
 import type { PostEntry } from "../utils/blog";
 import { formatDate, getPostSlug, getTagSlug } from "../utils/blog";
@@ -14,10 +15,11 @@ interface Props {
 }
 
 const { post, locale, basePath = "", alternateHref, researchNotesPost = null } = Astro.props as Props;
-const { Content, headings = [] } = await post.render();
+const { Content, headings = [] } = await render(post);
 const timelineHeadings = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
 const hasTimeline = timelineHeadings.length > 0;
 const dictionary = getDictionary(locale);
+const postSlug = getPostSlug(post);
 const altLocale = otherLocale(locale);
 const alternateLabel = dictionary.navigation.locales[altLocale].label;
 const canonical = Astro.url?.href;
@@ -32,7 +34,7 @@ const timelineCopy = {
 	toggleShow: dictionary.postPage.timeline?.toggleShow ?? "Show timeline",
 };
 const timelineId = hasTimeline
-	? `timeline-${post.slug.replace(/[^a-z0-9-]/gi, "-")}`
+	? `timeline-${postSlug.replace(/[^a-z0-9-]/gi, "-")}`
 	: "";
 const timelineToggleScript = hasTimeline
 	? `
@@ -74,9 +76,9 @@ document.addEventListener('DOMContentLoaded', () => {
 `
 	: "";
 const showResearchNotesInline = Boolean(researchNotesPost && !post.data.isResearchNotes);
-const researchNotesRendered = showResearchNotesInline && researchNotesPost ? await researchNotesPost.render() : null;
+const researchNotesRendered = showResearchNotesInline && researchNotesPost ? await render(researchNotesPost) : null;
 const ResearchNotesContent = researchNotesRendered?.Content;
-const researchNotesSectionId = showResearchNotesInline ? `research-notes-${post.slug.replace(/[^a-z0-9-]/gi, "-")}` : "";
+const researchNotesSectionId = showResearchNotesInline ? `research-notes-${postSlug.replace(/[^a-z0-9-]/gi, "-")}` : "";
 const researchNotesPanelId = showResearchNotesInline ? `${researchNotesSectionId}-panel` : "";
 const researchNotesSlug =
 	showResearchNotesInline && researchNotesPost ? getPostSlug(researchNotesPost) : null;
