@@ -3,6 +3,7 @@
 > Engineering fundamentals, software craft, and deep technical understanding.
 
 ## Articles
+- [Use .git/info/exclude for Local Notes in a Shared Repo](https://build.turtleand.com/blog/2026-06-18-git-info-exclude-local-workspace/): How Git's local exclude file keeps personal notes, AI research, scratch scripts, and temporary files out of shared repository history.
 - [Spying Without Replacing with mocker.spy](https://build.turtleand.com/blog/2026-02-12-mocker-spy-python/): How to watch real functions without faking them.
 - [Dependency Injection](https://build.turtleand.com/blog/2026-02-02-dependency-injection-python/): Understanding dependency injection through practical Flask examples and avoiding common pitfalls.
 - [Testing the Decorator Pattern](https://build.turtleand.com/blog/2026-01-04-testing-decorator/): Understand decorators as function composition and test them safely.

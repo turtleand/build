@@ -4,7 +4,7 @@ description: "How Git's local exclude file keeps personal notes, AI research, sc
 date: 2026-06-18
 tags: ["git", "developer tools", "software engineering"]
 featured: false
-draft: true
+draft: false
 locale: en
 translationKey: git-info-exclude-local-workspace
 slug: 2026-06-18-git-info-exclude-local-workspace
