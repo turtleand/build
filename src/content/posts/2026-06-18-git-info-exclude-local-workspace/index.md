@@ -5,6 +5,9 @@ date: 2026-06-18
 tags: ["git", "developer tools", "software engineering"]
 featured: false
 draft: false
+image:
+  src: /images/posts/github-mark.svg
+  alt: "GitHub mark icon"
 locale: en
 translationKey: git-info-exclude-local-workspace
 slug: 2026-06-18-git-info-exclude-local-workspace
