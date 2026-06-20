@@ -4,7 +4,7 @@ description: "Una explicación para principiantes sobre cómo Dependabot mira de
 date: 2026-06-20
 tags: ["github", "herramientas de desarrollo", "ingeniería de software", "mantenimiento"]
 featured: false
-draft: true
+draft: false
 image:
   src: /images/posts/github-mark.svg
   alt: "Ícono de GitHub"

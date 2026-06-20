@@ -3,6 +3,7 @@
 > Engineering fundamentals, software craft, and deep technical understanding.
 
 ## Articles
+- [Dependabot Is an Update Scout](https://build.turtleand.com/blog/2026-06-20-dependabot-update-scout/): A beginner-friendly explanation of how Dependabot watches project dependencies, opens update pull requests, and still leaves tests and human review in charge.
 - [From Refactor Tools to Change Plans](https://build.turtleand.com/blog/2026-06-19-refactor-tools-to-change-plans/): Why AI agents make the old lesson of IDE refactoring broader: inspect the system before changing it.
 - [Use .git/info/exclude for Local Notes in a Shared Repo](https://build.turtleand.com/blog/2026-06-18-git-info-exclude-local-workspace/): How Git's local exclude file keeps personal notes, AI research, scratch scripts, and temporary files out of shared repository history.
 - [Spying Without Replacing with mocker.spy](https://build.turtleand.com/blog/2026-02-12-mocker-spy-python/): How to watch real functions without faking them.

@@ -4,7 +4,7 @@ description: "A beginner-friendly explanation of how Dependabot watches project 
 date: 2026-06-20
 tags: ["github", "developer tools", "software engineering", "maintenance"]
 featured: false
-draft: true
+draft: false
 image:
   src: /images/posts/github-mark.svg
   alt: "GitHub mark icon"
