@@ -25,18 +25,6 @@ const altLocale = otherLocale(locale);
 const alternateHref = altLocale === 'es' ? '/es' : '/';
 const alternateLabel = dictionary.navigation.locales[altLocale].aria;
 const defaultCountLabel = dictionary.search.countResults.replace('{count}', String(posts.length));
-const archiveIntro = locale === 'es'
-	? 'Notas técnicas con ejemplos reproducibles, límites claros y decisiones de implementación.'
-	: 'Technical notes with reproducible examples, clear boundaries, and implementation decisions.';
-const archiveKicker = locale === 'es' ? 'Archivo Build' : 'Build archive';
-const archiveTitle = locale === 'es'
-	? 'Notas de ingeniería para cambiar software con cuidado.'
-	: 'Engineering notes for changing software with care.';
-const postCountLabel = locale === 'es' ? `${posts.length} notas` : `${posts.length} posts`;
-const protocolLabel = locale === 'es' ? 'Ciclo de cambio' : 'Change loop';
-const protocolSteps = locale === 'es'
-	? ['Inspeccionar', 'Cambiar', 'Verificar']
-	: ['Inspect', 'Change', 'Verify'];
 const base = basePath === '/' ? '' : basePath;
 const buildHref = (path: string) => {
 	const normalized = path.startsWith('/') ? path : `/${path}`;
@@ -97,42 +85,25 @@ const searchConfigScript = escapeForScript({
 		</a>
 	)}
 
-	<section class="feed">
-		<div class="archive-panel">
-			<div class="feed-heading">
-				<p class="feed-kicker">{archiveKicker}</p>
-				<h2 id="build-archive-title">{archiveTitle}</h2>
-				<p>{archiveIntro}</p>
+	<section class="feed" aria-label={dictionary.search.label}>
+		<div class="search-shell">
+			<label class="sr-only" for="home-search">{dictionary.search.label}</label>
+			<div class="search-input-row">
+				<span class="search-icon" aria-hidden="true">⌕</span>
+				<input
+					id="home-search"
+					type="search"
+					class="search-input"
+					name="home-search"
+					placeholder={dictionary.search.placeholder}
+					autocomplete="off"
+					data-search-input
+				/>
+				<button class="pill subtle search-clear" type="button" data-search-clear aria-label={dictionary.search.clear} hidden>
+					{dictionary.search.clear}
+				</button>
 			</div>
-			<div class="archive-meta" aria-label={protocolLabel}>
-				<span class="feed-count">{postCountLabel}</span>
-				<div class="protocol-steps">
-					{protocolSteps.map((step, index) => (
-						<>
-							<span class="protocol-step">{step}</span>
-							{index < protocolSteps.length - 1 && <span class="protocol-arrow" aria-hidden="true">→</span>}
-						</>
-					))}
-				</div>
-			</div>
-			<div class="search-inline">
-				<label class="sr-only" for="home-search">{dictionary.search.label}</label>
-				<div class="search-input-row">
-					<input
-						id="home-search"
-						type="search"
-						class="search-input"
-						name="home-search"
-						placeholder={dictionary.search.placeholder}
-						autocomplete="off"
-						data-search-input
-					/>
-					<button class="pill subtle search-clear" type="button" data-search-clear aria-label={dictionary.search.clear}>
-						{dictionary.search.clear}
-					</button>
-				</div>
-				<p class="search-count" data-search-count>{defaultCountLabel}</p>
-			</div>
+			<p class="search-count" data-search-count hidden>{defaultCountLabel}</p>
 		</div>
 		<p class="search-empty" data-search-empty hidden>{dictionary.search.empty}</p>
 		<div class="feed-list search-results" data-search-grid hidden></div>
@@ -251,87 +222,65 @@ const searchConfigScript = escapeForScript({
 	gap: 1.2rem;
 }
 
-.archive-panel {
+.search-shell {
+	padding: 0.2rem 0;
+}
+
+.search-input-row {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) auto;
-	gap: 1rem 1.25rem;
-	align-items: end;
-	padding: 1.15rem;
-	border: 1px solid var(--border);
-	border-radius: var(--radius-lg);
-	background:
-		linear-gradient(90deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent 34%),
-		var(--surface-card);
-	box-shadow: var(--shadow-soft);
-}
-
-.feed-heading {
-	display: flex;
-	flex-direction: column;
-	gap: 0.35rem;
-}
-
-.feed-heading h2 {
-	margin: 0;
-	font-family: var(--font-heading);
-	font-size: clamp(1.45rem, 2.25vw, 2.05rem);
-	line-height: 1.1;
-}
-
-.feed-heading p {
-	margin: 0;
-	color: var(--text-muted);
-	max-width: 58ch;
-}
-
-.feed-kicker {
-	margin: 0;
-	font-size: 0.78rem;
-	letter-spacing: 0.14em;
-	text-transform: uppercase;
-	font-weight: 700;
-	color: var(--accent) !important;
-}
-
-.archive-meta {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-end;
-	gap: 0.55rem;
-}
-
-.feed-count {
-	flex-shrink: 0;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	gap: 0.75rem;
+	align-items: center;
 	border: 1px solid var(--border);
 	border-radius: var(--radius-pill);
 	background: var(--surface-card);
-	padding: 0.4rem 0.75rem;
-	font-size: 0.9rem;
-	color: var(--text-muted);
-	box-shadow: var(--shadow-soft);
+	padding: 0.55rem 0.65rem 0.55rem 0.95rem;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.protocol-steps {
-	display: flex;
-	align-items: center;
-	justify-content: flex-end;
-	gap: 0.35rem;
-	font-family: var(--font-mono);
-	font-size: 0.72rem;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
+.search-input-row:focus-within {
+	border-color: color-mix(in srgb, var(--accent) 65%, var(--border));
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.search-icon {
+	color: var(--text-muted);
+	font-size: 1rem;
+	line-height: 1;
+}
+
+.search-input {
+	width: 100%;
+	min-width: 0;
+	border: 0;
+	padding: 0.2rem 0;
+	font-size: 1rem;
+	background: transparent;
+	color: var(--text-base);
+}
+
+.search-input:focus {
+	outline: none;
+}
+
+.search-input::placeholder {
 	color: var(--text-muted);
 }
 
-.protocol-step {
-	border: 1px solid var(--border);
+.search-input-row .pill {
 	border-radius: var(--radius-pill);
-	background: var(--surface-elevated);
-	padding: 0.28rem 0.48rem;
+	box-shadow: none;
 }
 
-.protocol-arrow {
-	color: color-mix(in srgb, var(--accent) 65%, var(--text-muted));
+.search-clear[hidden],
+.search-count[hidden] {
+	display: none;
+}
+
+.search-count {
+	margin: 0.55rem 0 0;
+	color: var(--text-muted);
+	font-size: 0.9rem;
 }
 
 .pagination {
@@ -343,53 +292,6 @@ const searchConfigScript = escapeForScript({
 
 .pagination-label {
 	color: var(--text-muted);
-}
-
-.search-inline {
-	grid-column: 1 / -1;
-	padding-top: 0.15rem;
-}
-
-.search-input-row {
-	display: flex;
-	gap: 0.75rem;
-	align-items: center;
-}
-
-.search-input {
-	flex: 1;
-	border: 1px solid var(--border);
-	border-radius: var(--radius-pill);
-	padding: 0.65rem 1rem;
-	font-size: 1rem;
-	background: var(--surface-elevated);
-	color: var(--text-base);
-	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--surface-elevated) 70%, var(--border));
-}
-
-.search-input:focus {
-	outline: 2px solid var(--accent);
-	outline-offset: 2px;
-}
-
-.search-input-row .pill {
-	border-radius: var(--radius-pill);
-	box-shadow: none;
-}
-
-.search-inline:focus-within {
-	border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
-	box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
-}
-
-.search-clear[hidden] {
-	display: none;
-}
-
-.search-count {
-	margin: 0.6rem 0 0;
-	color: var(--text-muted);
-	font-size: 0.95rem;
 }
 
 .search-empty {
@@ -409,32 +311,13 @@ const searchConfigScript = escapeForScript({
 }
 
 @media (max-width: 600px) {
-	.archive-panel {
-		grid-template-columns: 1fr;
-		align-items: start;
-		padding: 1rem;
-	}
-
-	.feed-heading {
-		align-items: flex-start;
-	}
-
-	.archive-meta {
-		align-items: flex-start;
-	}
-
-	.protocol-steps {
-		justify-content: flex-start;
-		flex-wrap: wrap;
-	}
-
 	.search-input-row {
-		flex-direction: column;
-		align-items: stretch;
+		grid-template-columns: auto minmax(0, 1fr);
 	}
 
 	.search-clear {
-		width: 100%;
+		grid-column: 2;
+		justify-self: start;
 	}
 }
 </style>

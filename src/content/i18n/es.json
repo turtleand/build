@@ -41,7 +41,7 @@
   },
   "search": {
     "label": "Buscar publicaciones",
-    "placeholder": "Busca por título, etiquetas o contenido",
+    "placeholder": "Buscar publicaciones",
     "countDefault": "Mostrando {count} publicaciones",
     "countResults": "Encontramos {count} resultados",
     "empty": "No hay publicaciones que coincidan con tu búsqueda.",

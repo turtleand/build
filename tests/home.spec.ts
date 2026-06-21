@@ -1,16 +1,14 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Home page', () => {
-	test('renders the featured hero, archive panel, and post cards', async ({ page }) => {
+	test('renders the featured hero, search bar, and post cards', async ({ page }) => {
 		await page.goto('/');
 
 		await expect(page.getByRole('heading', { level: 1, name: 'From Refactor Tools to Change Plans' })).toBeVisible();
-		await expect(page.getByRole('heading', { level: 2, name: 'Engineering notes for changing software with care.' })).toBeVisible();
-		await expect(page.getByText('10 posts')).toBeVisible();
-		const changeLoop = page.getByLabel('Change loop');
-		await expect(changeLoop.getByText('Inspect')).toBeVisible();
-		await expect(changeLoop.getByText('Change')).toBeVisible();
-		await expect(changeLoop.getByText('Verify')).toBeVisible();
+		await expect(page.getByRole('searchbox', { name: 'Search posts' })).toBeVisible();
+		await expect(page.getByPlaceholder('Search posts')).toBeVisible();
+		await expect(page.getByText('Engineering notes for changing software with care.')).toHaveCount(0);
+		await expect(page.locator('main').getByText('Inspect', { exact: true })).toHaveCount(0);
 
 		const postCards = page.locator('[data-post-grid] .post-card');
 		await expect(postCards.first()).toBeVisible();
@@ -61,7 +59,7 @@ test.describe('Home page', () => {
 			const initialAllPostCount = await allPostsGrid.count();
 			expect(initialAllPostCount).toBeGreaterThan(0);
 
-			const searchInput = page.getByPlaceholder('Search titles, tags, or body text');
+			const searchInput = page.getByPlaceholder('Search posts');
 			await searchInput.fill('python');
 
 			const resultsGrid = page.locator('[data-search-grid] .post-card');
@@ -83,7 +81,7 @@ test.describe('Home page', () => {
 
 	test('keeps the featured post out of the first archive grid when the first page fits', async ({ page }) => {
 		await page.goto('/');
-		await expect(page.locator('[data-search-count]')).toContainText('Found 10 results');
+		await expect(page.locator('[data-search-count]')).toBeHidden();
 		await expect(page.locator('[data-pagination]')).toHaveCount(0);
 		const archiveTitles = page.locator('[data-post-grid] h3');
 		expect(await archiveTitles.count()).toBe(9);
