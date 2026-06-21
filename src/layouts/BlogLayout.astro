@@ -718,10 +718,14 @@ const randomArticleLabel = dictionary.randomArticleModal?.label ?? "Choosing a r
 	}
 
 	.nav-list a {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 48px;
 		color: var(--text-base);
 		font-weight: 600;
-		padding: 0.4rem 0.75rem;
-		border-radius: 10px;
+		padding: 0.5rem 0.85rem;
+		border-radius: 12px;
 	}
 
 	.nav-list a:hover,
@@ -739,8 +743,11 @@ const randomArticleLabel = dictionary.randomArticleModal?.label ?? "Choosing a r
 	.pill {
 		display: inline-flex;
 		align-items: center;
+		justify-content: center;
 		gap: 0.45rem;
-		padding: 0.45rem 0.85rem;
+		min-width: 48px;
+		min-height: 48px;
+		padding: 0.55rem 0.9rem;
 		border-radius: var(--radius-pill);
 		border: 1px solid var(--border);
 		background: var(--surface-card);
@@ -759,9 +766,9 @@ const randomArticleLabel = dictionary.randomArticleModal?.label ?? "Choosing a r
 			border: none;
 			box-shadow: none;
 			gap: 0;
-			padding: 0.35rem;
-			min-width: 42px;
-			min-height: 42px;
+			padding: 0;
+			min-width: 48px;
+			min-height: 48px;
 			justify-content: center;
 			transition:
 				transform 0.2s ease,
@@ -779,8 +786,8 @@ const randomArticleLabel = dictionary.randomArticleModal?.label ?? "Choosing a r
 
 		.pill.theme-toggle .theme-icon {
 			position: relative;
-			width: 42px;
-			height: 42px;
+			width: 48px;
+			height: 48px;
 			display: grid;
 			place-items: center;
 			color: var(--text-base);
@@ -914,8 +921,8 @@ const randomArticleLabel = dictionary.randomArticleModal?.label ?? "Choosing a r
 		display: inline-flex;
 		justify-content: center;
 		align-items: center;
-		width: 44px;
-		height: 44px;
+		width: 48px;
+		height: 48px;
 		border-radius: 999px;
 		border: 1px solid var(--footer-pill-border);
 		background: var(--footer-pill-bg);
@@ -937,7 +944,7 @@ const randomArticleLabel = dictionary.randomArticleModal?.label ?? "Choosing a r
 		padding: 0 1.2rem;
 		width: auto;
 		gap: 0.6rem;
-		height: 44px;
+		height: 48px;
 		border-color: var(--footer-mail-border);
 		background: var(--footer-mail-bg);
 		color: var(--footer-pill-text);
