@@ -60,15 +60,34 @@ Use swap for occasional spikes. If memory pressure is constant, reduce the workl
 
 ## Safe runbook shape
 
-After expanding the EBS volume in AWS, verify the block device and partition names on the instance. NVMe device names can vary by instance and AMI, so do not paste commands blindly.
+After expanding the EBS volume in AWS, verify the block device, partition name, and filesystem type on the instance. NVMe device names can vary by instance and AMI, and the filesystem determines the grow command.
 
-A common root-volume shape looks like this:
+A common root-volume shape starts like this:
 
 ```bash
 lsblk
+df -hT /
 sudo growpart /dev/nvme0n1 1
+```
+
+Then grow the filesystem with the command that matches `/`.
+
+For `ext4`:
+
+```bash
 sudo resize2fs /dev/nvme0n1p1
-df -h /
+```
+
+For `xfs`:
+
+```bash
+sudo xfs_growfs -d /
+```
+
+Then verify the result:
+
+```bash
+df -hT /
 ```
 
 The expected result is that `/` shows the larger filesystem size after the partition and filesystem are expanded.

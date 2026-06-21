@@ -62,15 +62,34 @@ Usá swap para picos ocasionales. Si la presión de memoria es constante, reduc�
 
 ## Forma segura del runbook
 
-Después de expandir el volumen EBS en AWS, verificá los nombres del dispositivo y la partición dentro de la instancia. Los nombres NVMe pueden variar según la instancia y la AMI, así que no conviene pegar comandos a ciegas.
+Después de expandir el volumen EBS en AWS, verificá el dispositivo, el nombre de la partición y el tipo de filesystem dentro de la instancia. Los nombres NVMe pueden variar según la instancia y la AMI, y el filesystem determina qué comando usar para crecerlo.
 
-Una forma común para el volumen raíz se ve así:
+Una forma común para el volumen raíz empieza así:
 
 ```bash
 lsblk
+df -hT /
 sudo growpart /dev/nvme0n1 1
+```
+
+Después, crecé el filesystem con el comando que corresponda a `/`.
+
+Para `ext4`:
+
+```bash
 sudo resize2fs /dev/nvme0n1p1
-df -h /
+```
+
+Para `xfs`:
+
+```bash
+sudo xfs_growfs -d /
+```
+
+Después verificá el resultado:
+
+```bash
+df -hT /
 ```
 
 El resultado esperado es que `/` muestre el filesystem con el tamaño más grande después de expandir la partición y el filesystem.
