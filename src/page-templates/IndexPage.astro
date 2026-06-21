@@ -24,7 +24,19 @@ const feedPosts = heroPost ? paginatedPosts.filter((post) => getPostSlug(post) !
 const altLocale = otherLocale(locale);
 const alternateHref = altLocale === 'es' ? '/es' : '/';
 const alternateLabel = dictionary.navigation.locales[altLocale].aria;
-const defaultCountLabel = dictionary.search.countResults.replace('{count}', '0');
+const defaultCountLabel = dictionary.search.countResults.replace('{count}', String(posts.length));
+const archiveIntro = locale === 'es'
+	? 'Notas técnicas con ejemplos reproducibles, límites claros y decisiones de implementación.'
+	: 'Technical notes with reproducible examples, clear boundaries, and implementation decisions.';
+const archiveKicker = locale === 'es' ? 'Archivo Build' : 'Build archive';
+const archiveTitle = locale === 'es'
+	? 'Notas de ingeniería para cambiar software con cuidado.'
+	: 'Engineering notes for changing software with care.';
+const postCountLabel = locale === 'es' ? `${posts.length} notas` : `${posts.length} posts`;
+const protocolLabel = locale === 'es' ? 'Ciclo de cambio' : 'Change loop';
+const protocolSteps = locale === 'es'
+	? ['Inspeccionar', 'Cambiar', 'Verificar']
+	: ['Inspect', 'Change', 'Verify'];
 const base = basePath === '/' ? '' : basePath;
 const buildHref = (path: string) => {
 	const normalized = path.startsWith('/') ? path : `/${path}`;
@@ -86,23 +98,41 @@ const searchConfigScript = escapeForScript({
 	)}
 
 	<section class="feed">
-		<div class="search-inline">
-			<label class="sr-only" for="home-search">{dictionary.search.label}</label>
-			<div class="search-input-row">
-				<input
-					id="home-search"
-					type="search"
-					class="search-input"
-					name="home-search"
-					placeholder={dictionary.search.placeholder}
-					autocomplete="off"
-					data-search-input
-				/>
-				<button class="pill subtle search-clear" type="button" data-search-clear aria-label={dictionary.search.clear}>
-					{dictionary.search.clear}
-				</button>
+		<div class="archive-panel">
+			<div class="feed-heading">
+				<p class="feed-kicker">{archiveKicker}</p>
+				<h2 id="build-archive-title">{archiveTitle}</h2>
+				<p>{archiveIntro}</p>
 			</div>
-			<p class="search-count" data-search-count>{defaultCountLabel}</p>
+			<div class="archive-meta" aria-label={protocolLabel}>
+				<span class="feed-count">{postCountLabel}</span>
+				<div class="protocol-steps">
+					{protocolSteps.map((step, index) => (
+						<>
+							<span class="protocol-step">{step}</span>
+							{index < protocolSteps.length - 1 && <span class="protocol-arrow" aria-hidden="true">→</span>}
+						</>
+					))}
+				</div>
+			</div>
+			<div class="search-inline">
+				<label class="sr-only" for="home-search">{dictionary.search.label}</label>
+				<div class="search-input-row">
+					<input
+						id="home-search"
+						type="search"
+						class="search-input"
+						name="home-search"
+						placeholder={dictionary.search.placeholder}
+						autocomplete="off"
+						data-search-input
+					/>
+					<button class="pill subtle search-clear" type="button" data-search-clear aria-label={dictionary.search.clear}>
+						{dictionary.search.clear}
+					</button>
+				</div>
+				<p class="search-count" data-search-count>{defaultCountLabel}</p>
+			</div>
 		</div>
 		<p class="search-empty" data-search-empty hidden>{dictionary.search.empty}</p>
 		<div class="feed-list search-results" data-search-grid hidden></div>
@@ -221,6 +251,89 @@ const searchConfigScript = escapeForScript({
 	gap: 1.2rem;
 }
 
+.archive-panel {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 1rem 1.25rem;
+	align-items: end;
+	padding: 1.15rem;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	background:
+		linear-gradient(90deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent 34%),
+		var(--surface-card);
+	box-shadow: var(--shadow-soft);
+}
+
+.feed-heading {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+}
+
+.feed-heading h2 {
+	margin: 0;
+	font-family: var(--font-heading);
+	font-size: clamp(1.45rem, 2.25vw, 2.05rem);
+	line-height: 1.1;
+}
+
+.feed-heading p {
+	margin: 0;
+	color: var(--text-muted);
+	max-width: 58ch;
+}
+
+.feed-kicker {
+	margin: 0;
+	font-size: 0.78rem;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	font-weight: 700;
+	color: var(--accent) !important;
+}
+
+.archive-meta {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 0.55rem;
+}
+
+.feed-count {
+	flex-shrink: 0;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-pill);
+	background: var(--surface-card);
+	padding: 0.4rem 0.75rem;
+	font-size: 0.9rem;
+	color: var(--text-muted);
+	box-shadow: var(--shadow-soft);
+}
+
+.protocol-steps {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 0.35rem;
+	font-family: var(--font-mono);
+	font-size: 0.72rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--text-muted);
+}
+
+.protocol-step {
+	border: 1px solid var(--border);
+	border-radius: var(--radius-pill);
+	background: var(--surface-elevated);
+	padding: 0.28rem 0.48rem;
+}
+
+.protocol-arrow {
+	color: color-mix(in srgb, var(--accent) 65%, var(--text-muted));
+}
+
 .pagination {
 	margin-top: 2.25rem;
 	display: flex;
@@ -233,11 +346,8 @@ const searchConfigScript = escapeForScript({
 }
 
 .search-inline {
-	padding: 0.6rem;
-	border: 1px solid var(--border);
-	border-radius: var(--radius-lg);
-	background: var(--surface-card);
-	box-shadow: var(--shadow-soft);
+	grid-column: 1 / -1;
+	padding-top: 0.15rem;
 }
 
 .search-input-row {
@@ -299,6 +409,25 @@ const searchConfigScript = escapeForScript({
 }
 
 @media (max-width: 600px) {
+	.archive-panel {
+		grid-template-columns: 1fr;
+		align-items: start;
+		padding: 1rem;
+	}
+
+	.feed-heading {
+		align-items: flex-start;
+	}
+
+	.archive-meta {
+		align-items: flex-start;
+	}
+
+	.protocol-steps {
+		justify-content: flex-start;
+		flex-wrap: wrap;
+	}
+
 	.search-input-row {
 		flex-direction: column;
 		align-items: stretch;
