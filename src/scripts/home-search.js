@@ -126,7 +126,8 @@ const setupSearch = () => {
     resultsGrid.innerHTML = '';
     resultsGrid.hidden = true;
     emptyState.hidden = true;
-    countLabel.textContent = config.defaultCount || '';
+    countLabel.textContent = '';
+    countLabel.hidden = true;
     clearBtn.hidden = true;
     if (defaultGrid) {
       defaultGrid.hidden = false;
@@ -156,6 +157,7 @@ const setupSearch = () => {
       emptyState.hidden = false;
     }
     countLabel.textContent = replaceCount(config.countResults, matches.length);
+    countLabel.hidden = false;
     clearBtn.hidden = false;
     if (defaultGrid) {
       defaultGrid.hidden = true;

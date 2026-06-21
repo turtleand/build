@@ -91,6 +91,11 @@ const researchNotesCopy = {
 	openLabel: dictionary.postPage.researchNotes?.openLabel ?? "Open Research Notes",
 	collapseLabel: dictionary.postPage.researchNotes?.collapseLabel ?? "Collapse Research Notes",
 };
+const articleKicker = locale === "es" ? "Nota Build" : "Build note";
+const articleProtocolLabel = locale === "es" ? "Forma de lectura" : "Reading frame";
+const articleProtocolSteps = locale === "es"
+	? ["Contexto", "Decisión", "Prueba"]
+	: ["Context", "Decision", "Proof"];
 const researchNotesScript = showResearchNotesInline
 	? `
 document.addEventListener('DOMContentLoaded', () => {
@@ -227,57 +232,73 @@ document.addEventListener('DOMContentLoaded', () => {
 				)
 			}
 			<article class="post">
-				<p class="back-link">
-					<a href={basePath || "/"}>← {dictionary.postPage.backLabel}</a>
-				</p>
-				<h1>{post.data.title}</h1>
-				<p class="meta">
-					{dictionary.postPage.publishedOn}: {formatDate(post.data.date, locale)}
-				</p>
-				{
-					post.data.tags.length > 0 && (
-						<ul class="tags" aria-label={dictionary.postPage.tagsLabel}>
-							{post.data.tags.map((tag) => (
-								<li>
-									<a href={`${basePath}/tags/${getTagSlug(tag)}`}>{tag}</a>
-								</li>
+				<header class="post-hero">
+					<p class="back-link">
+						<a href={basePath || "/"}>← {dictionary.postPage.backLabel}</a>
+					</p>
+					<p class="post-kicker">{articleKicker}</p>
+					<h1>{post.data.title}</h1>
+					<p class="post-summary">{post.data.description}</p>
+					<div class="meta-strip">
+						<p class="meta">
+							{dictionary.postPage.publishedOn}: {formatDate(post.data.date, locale)}
+						</p>
+						<div class="article-protocol" aria-label={articleProtocolLabel}>
+							{articleProtocolSteps.map((step, index) => (
+								<>
+									<span>{step}</span>
+									{index < articleProtocolSteps.length - 1 && <span class="protocol-separator" aria-hidden="true">/</span>}
+								</>
 							))}
-						</ul>
-					)
-				}
-				<div class="content">
-					<Content />
+						</div>
+					</div>
+					{
+						post.data.tags.length > 0 && (
+							<ul class="tags" aria-label={dictionary.postPage.tagsLabel}>
+								{post.data.tags.map((tag) => (
+									<li>
+										<a href={`${basePath}/tags/${getTagSlug(tag)}`}>{tag}</a>
+									</li>
+								))}
+							</ul>
+						)
+					}
+				</header>
+				<div class="post-body">
+					<div class="content">
+						<Content />
+					</div>
+					{
+						showResearchNotesInline && researchNotesHref && ResearchNotesContent && (
+							<section class="research-notes-shell" id={researchNotesSectionId} data-research-notes-section>
+								<div class="research-notes-cta">
+									<div class="research-notes-copy">
+										<h2>{researchNotesCopy.heading}</h2>
+										<p>{researchNotesCopy.summary}</p>
+									</div>
+									<div class="research-notes-actions">
+										<button
+											type="button"
+											class="pill primary"
+											data-research-notes-toggle
+											data-open-label={researchNotesCopy.openLabel}
+											data-close-label={researchNotesCopy.collapseLabel}
+											aria-expanded="false"
+											aria-controls={researchNotesPanelId}
+										>
+											{researchNotesCopy.openLabel}
+										</button>
+									</div>
+								</div>
+								<div class="research-notes-panel" id={researchNotesPanelId} hidden>
+									<div class="research-notes-body">
+										<ResearchNotesContent />
+									</div>
+								</div>
+							</section>
+						)
+					}
 				</div>
-				{
-					showResearchNotesInline && researchNotesHref && ResearchNotesContent && (
-						<section class="research-notes-shell" id={researchNotesSectionId} data-research-notes-section>
-							<div class="research-notes-cta">
-								<div class="research-notes-copy">
-									<h2>{researchNotesCopy.heading}</h2>
-									<p>{researchNotesCopy.summary}</p>
-								</div>
-								<div class="research-notes-actions">
-									<button
-										type="button"
-										class="pill primary"
-										data-research-notes-toggle
-										data-open-label={researchNotesCopy.openLabel}
-										data-close-label={researchNotesCopy.collapseLabel}
-										aria-expanded="false"
-										aria-controls={researchNotesPanelId}
-									>
-										{researchNotesCopy.openLabel}
-									</button>
-								</div>
-							</div>
-							<div class="research-notes-panel" id={researchNotesPanelId} hidden>
-								<div class="research-notes-body">
-									<ResearchNotesContent />
-								</div>
-							</div>
-						</section>
-					)
-				}
 			</article>
 		</div>
 	</div>
@@ -310,14 +331,31 @@ document.addEventListener('DOMContentLoaded', () => {
 		max-width: var(--post-max-width);
 		margin: 0 auto;
 		background: var(--surface-card);
-		padding: 2rem;
-		border-radius: 20px;
+		border-radius: 22px;
 		border: 1px solid var(--border);
 		box-shadow: var(--shadow-card);
+		overflow: hidden;
+		position: relative;
+	}
+
+	.post::before {
+		content: "";
+		position: absolute;
+		inset: 0 auto 0 0;
+		width: 4px;
+		background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent-2) 75%, var(--accent)));
+	}
+
+	.post-hero {
+		padding: clamp(1.35rem, 3.8vw, 2.6rem) clamp(1.35rem, 4vw, 3rem) clamp(1.15rem, 3vw, 2rem);
+		background:
+			linear-gradient(90deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent 42%),
+			var(--surface-card);
+		border-bottom: 1px solid var(--border);
 	}
 
 	.back-link {
-		margin: 0 0 1rem;
+		margin: 0 0 1.15rem;
 	}
 
 	.back-link a {
@@ -331,9 +369,43 @@ document.addEventListener('DOMContentLoaded', () => {
 		text-decoration: underline;
 	}
 
+	.post-kicker {
+		margin: 0 0 0.65rem;
+		font-family: var(--font-code);
+		font-size: 0.78rem;
+		font-weight: 700;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--accent);
+	}
+
 	.post h1 {
-		margin: 0 0 0.35rem;
+		margin: 0;
 		font-family: var(--font-heading);
+		font-size: clamp(2.15rem, 5.4vw, 4rem);
+		letter-spacing: -0.045em;
+		line-height: 0.98;
+		max-width: 13ch;
+	}
+
+	.post-summary {
+		margin: 1rem 0 0;
+		max-width: 68ch;
+		color: var(--text-muted);
+		font-size: clamp(1.02rem, 2vw, 1.2rem);
+		line-height: 1.6;
+	}
+
+	.meta-strip {
+		margin-top: 1.25rem;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+		padding: 0.75rem 0;
+		border-top: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+		border-bottom: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
 	}
 
 	.meta {
@@ -341,13 +413,33 @@ document.addEventListener('DOMContentLoaded', () => {
 		color: var(--text-muted);
 	}
 
+	.article-protocol {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		font-family: var(--font-code);
+		font-size: 0.75rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--text-muted);
+	}
+
+	.protocol-separator {
+		color: color-mix(in srgb, var(--accent) 70%, var(--text-muted));
+	}
+
 	.tags {
 		list-style: none;
 		padding: 0;
-		margin: 0.85rem 0 0.5rem;
+		margin: 1rem 0 0;
 		display: flex;
 		gap: 0.5rem;
 		flex-wrap: wrap;
+	}
+
+	.post-body {
+		padding: clamp(1.35rem, 3.4vw, 2.65rem) clamp(1.35rem, 4vw, 3rem) clamp(1.65rem, 4vw, 3.1rem);
+		background: color-mix(in srgb, var(--surface-card) 96%, var(--page-bg));
 	}
 
 	.research-notes-shell {
@@ -588,8 +680,10 @@ document.addEventListener('DOMContentLoaded', () => {
 			--timeline-anchor: calc((100% - var(--post-max-width)) / 2);
 		}
 
-		.post {
-			padding: 2.5rem 3rem;
+		.post-hero,
+		.post-body {
+			padding-left: 3.25rem;
+			padding-right: 3.25rem;
 		}
 	}
 

@@ -24,7 +24,7 @@ const feedPosts = heroPost ? paginatedPosts.filter((post) => getPostSlug(post) !
 const altLocale = otherLocale(locale);
 const alternateHref = altLocale === 'es' ? '/es' : '/';
 const alternateLabel = dictionary.navigation.locales[altLocale].aria;
-const defaultCountLabel = dictionary.search.countResults.replace('{count}', '0');
+const defaultCountLabel = dictionary.search.countResults.replace('{count}', String(posts.length));
 const base = basePath === '/' ? '' : basePath;
 const buildHref = (path: string) => {
 	const normalized = path.startsWith('/') ? path : `/${path}`;
@@ -85,10 +85,11 @@ const searchConfigScript = escapeForScript({
 		</a>
 	)}
 
-	<section class="feed">
-		<div class="search-inline">
+	<section class="feed" aria-label={dictionary.search.label}>
+		<div class="search-shell">
 			<label class="sr-only" for="home-search">{dictionary.search.label}</label>
 			<div class="search-input-row">
+				<span class="search-icon" aria-hidden="true">⌕</span>
 				<input
 					id="home-search"
 					type="search"
@@ -98,11 +99,11 @@ const searchConfigScript = escapeForScript({
 					autocomplete="off"
 					data-search-input
 				/>
-				<button class="pill subtle search-clear" type="button" data-search-clear aria-label={dictionary.search.clear}>
+				<button class="pill subtle search-clear" type="button" data-search-clear aria-label={dictionary.search.clear} hidden>
 					{dictionary.search.clear}
 				</button>
 			</div>
-			<p class="search-count" data-search-count>{defaultCountLabel}</p>
+			<p class="search-count" data-search-count hidden>{defaultCountLabel}</p>
 		</div>
 		<p class="search-empty" data-search-empty hidden>{dictionary.search.empty}</p>
 		<div class="feed-list search-results" data-search-grid hidden></div>
@@ -221,6 +222,67 @@ const searchConfigScript = escapeForScript({
 	gap: 1.2rem;
 }
 
+.search-shell {
+	padding: 0.2rem 0;
+}
+
+.search-input-row {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	gap: 0.75rem;
+	align-items: center;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-pill);
+	background: var(--surface-card);
+	padding: 0.55rem 0.65rem 0.55rem 0.95rem;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-input-row:focus-within {
+	border-color: color-mix(in srgb, var(--accent) 65%, var(--border));
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.search-icon {
+	color: var(--text-muted);
+	font-size: 1rem;
+	line-height: 1;
+}
+
+.search-input {
+	width: 100%;
+	min-width: 0;
+	border: 0;
+	padding: 0.2rem 0;
+	font-size: 1rem;
+	background: transparent;
+	color: var(--text-base);
+}
+
+.search-input:focus {
+	outline: none;
+}
+
+.search-input::placeholder {
+	color: var(--text-muted);
+}
+
+.search-input-row .pill {
+	border-radius: var(--radius-pill);
+	box-shadow: none;
+}
+
+.search-clear[hidden],
+.search-count[hidden] {
+	display: none;
+}
+
+.search-count {
+	margin: 0.55rem 0 0;
+	color: var(--text-muted);
+	font-size: 0.9rem;
+}
+
 .pagination {
 	margin-top: 2.25rem;
 	display: flex;
@@ -230,56 +292,6 @@ const searchConfigScript = escapeForScript({
 
 .pagination-label {
 	color: var(--text-muted);
-}
-
-.search-inline {
-	padding: 0.6rem;
-	border: 1px solid var(--border);
-	border-radius: var(--radius-lg);
-	background: var(--surface-card);
-	box-shadow: var(--shadow-soft);
-}
-
-.search-input-row {
-	display: flex;
-	gap: 0.75rem;
-	align-items: center;
-}
-
-.search-input {
-	flex: 1;
-	border: 1px solid var(--border);
-	border-radius: var(--radius-pill);
-	padding: 0.65rem 1rem;
-	font-size: 1rem;
-	background: var(--surface-elevated);
-	color: var(--text-base);
-	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--surface-elevated) 70%, var(--border));
-}
-
-.search-input:focus {
-	outline: 2px solid var(--accent);
-	outline-offset: 2px;
-}
-
-.search-input-row .pill {
-	border-radius: var(--radius-pill);
-	box-shadow: none;
-}
-
-.search-inline:focus-within {
-	border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
-	box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
-}
-
-.search-clear[hidden] {
-	display: none;
-}
-
-.search-count {
-	margin: 0.6rem 0 0;
-	color: var(--text-muted);
-	font-size: 0.95rem;
 }
 
 .search-empty {
@@ -300,12 +312,12 @@ const searchConfigScript = escapeForScript({
 
 @media (max-width: 600px) {
 	.search-input-row {
-		flex-direction: column;
-		align-items: stretch;
+		grid-template-columns: auto minmax(0, 1fr);
 	}
 
 	.search-clear {
-		width: 100%;
+		grid-column: 2;
+		justify-self: start;
 	}
 }
 </style>

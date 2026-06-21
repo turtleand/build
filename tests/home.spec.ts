@@ -1,39 +1,33 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Home page', () => {
-	test('renders featured and all posts sections with cards', async ({ page }) => {
+	test('renders the featured hero, search bar, and post cards', async ({ page }) => {
 		await page.goto('/');
 
-		const featuredHeading = page.getByRole('heading', { name: 'Featured' });
-		await expect(featuredHeading).toBeVisible();
-		const featuredCards = page.locator('#featured .post-card');
-		await expect(featuredCards.first()).toBeVisible();
+		await expect(page.getByRole('heading', { level: 1, name: 'From Refactor Tools to Change Plans' })).toBeVisible();
+		await expect(page.getByRole('searchbox', { name: 'Search posts' })).toBeVisible();
+		await expect(page.getByPlaceholder('Search posts')).toBeVisible();
+		await expect(page.getByText('Engineering notes for changing software with care.')).toHaveCount(0);
+		await expect(page.locator('main').getByText('Inspect', { exact: true })).toHaveCount(0);
 
-		const featuredTag = featuredCards.first().locator('.tags span').first();
-		await expect(featuredTag).toBeVisible();
-
-		const allSection = page
-			.locator('section')
-			.filter({ has: page.getByRole('heading', { name: 'All posts' }) });
-		const allPostCards = allSection.locator('.post-card');
-
-		await expect(allPostCards.first()).toBeVisible();
-		expect(await allPostCards.count()).toBeGreaterThan(0);
+		const postCards = page.locator('[data-post-grid] .post-card');
+		await expect(postCards.first()).toBeVisible();
+		expect(await postCards.count()).toBeGreaterThan(0);
+		await expect(postCards.first().locator('.tags span').first()).toBeVisible();
 	});
 
 	test('navigates from a card to the article and into tag detail', async ({ page }) => {
 		await page.goto('/');
 
-		const allSection = page
-			.locator('section')
-			.filter({ has: page.getByRole('heading', { name: 'All posts' }) });
-		const firstCard = allSection.locator('.post-card').first();
+		const firstCard = page.locator('[data-post-grid] .post-card').first();
 		const postTitle = (await firstCard.locator('h3').textContent())?.trim() ?? '';
 		expect(postTitle.length).toBeGreaterThan(0);
 
 		await firstCard.click();
 		await expect(page).toHaveURL(/\/blog\//);
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText(postTitle);
+		await expect(page.getByText('Build note')).toBeVisible();
+		await expect(page.getByLabel('Reading frame')).toContainText('Context');
 
 		const postTagLink = page.locator('.tags a').first();
 		const tagLabel = (await postTagLink.textContent())?.trim() ?? '';
@@ -42,31 +36,41 @@ test.describe('Home page', () => {
 		await postTagLink.click();
 		await expect(page).toHaveURL(/\/tags\//);
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText(tagLabel);
+		await expect(page.getByText('Topic archive')).toBeVisible();
 
 		const tagPostCards = page.locator('.post-card');
 		await expect(tagPostCards.first()).toBeVisible();
 		expect(await tagPostCards.count()).toBeGreaterThan(0);
 	});
 
-		test('filters posts via search keywords without affecting the All posts grid', async ({ page }) => {
+	test('orients the tags index as a Build topic map', async ({ page }) => {
+		await page.goto('/tags/');
+
+		await expect(page.getByText('Build map')).toBeVisible();
+		await expect(page.getByRole('heading', { level: 1, name: 'Tags' })).toBeVisible();
+		await expect(page.getByLabel('Cluster')).toContainText('Language');
+		await expect(page.locator('.tag-list a').first()).toBeVisible();
+	});
+
+		test('filters posts via search keywords without affecting the archive grid', async ({ page }) => {
 			await page.goto('/');
 
 			const allPostsGrid = page.locator('[data-post-grid] .post-card');
 			const initialAllPostCount = await allPostsGrid.count();
 			expect(initialAllPostCount).toBeGreaterThan(0);
 
-			const searchInput = page.getByPlaceholder('Search titles, tags, or body text');
-			await searchInput.fill('pagination');
+			const searchInput = page.getByPlaceholder('Search posts');
+			await searchInput.fill('python');
 
 			const resultsGrid = page.locator('[data-search-grid] .post-card');
 			await expect(resultsGrid.first()).toBeVisible();
 			const resultCount = await resultsGrid.count();
-			expect(resultCount).toBeGreaterThanOrEqual(2);
-			await expect(page.getByRole('heading', { level: 3, name: 'Pagination Playbook' })).toBeVisible();
-			await expect(page.getByRole('heading', { level: 3, name: 'Pagination Load Testing' })).toBeVisible();
+			expect(resultCount).toBeGreaterThanOrEqual(3);
+			await expect(page.getByRole('heading', { level: 3, name: 'Spying Without Replacing with mocker.spy' })).toBeVisible();
+			await expect(page.getByRole('heading', { level: 3, name: 'Dependency Injection' })).toBeVisible();
 			await expect(page.getByRole('button', { name: 'Clear search' })).toBeVisible();
 			await expect(page.locator('[data-search-count]')).toContainText('Found');
-			await expect(page.locator('[data-pagination]')).toBeVisible();
+			await expect(page.locator('[data-pagination]')).toHaveCount(0);
 			expect(await allPostsGrid.count()).toBe(initialAllPostCount);
 
 			await searchInput.fill('asdf');
@@ -75,15 +79,13 @@ test.describe('Home page', () => {
 			expect(await allPostsGrid.count()).toBe(initialAllPostCount);
 		});
 
-	test('shows more posts on the second page of pagination', async ({ page }) => {
+	test('keeps the featured post out of the first archive grid when the first page fits', async ({ page }) => {
 		await page.goto('/');
-		const nextLink = page.getByRole('link', { name: 'Next' });
-		await expect(nextLink).toBeVisible();
-		await nextLink.click();
-		await expect(page).toHaveURL(/\/page\/2$/);
-		await expect(page.getByText('Page 2 /')).toBeVisible();
-		const pageCards = page.locator('.post-card');
-		await expect(pageCards.first()).toBeVisible();
-		expect(await pageCards.count()).toBeGreaterThan(0);
+		await expect(page.locator('[data-search-count]')).toBeHidden();
+		await expect(page.locator('[data-pagination]')).toHaveCount(0);
+		const archiveTitles = page.locator('[data-post-grid] h3');
+		expect(await archiveTitles.count()).toBe(9);
+		await expect(archiveTitles.filter({ hasText: 'From Refactor Tools to Change Plans' })).toHaveCount(0);
+		await expect(archiveTitles.first()).toHaveText('Dependabot Is an Update Scout');
 	});
 });
