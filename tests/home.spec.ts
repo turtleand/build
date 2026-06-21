@@ -70,7 +70,7 @@ test.describe('Home page', () => {
 			await expect(page.getByRole('heading', { level: 3, name: 'Dependency Injection' })).toBeVisible();
 			await expect(page.getByRole('button', { name: 'Clear search' })).toBeVisible();
 			await expect(page.locator('[data-search-count]')).toContainText('Found');
-			await expect(page.locator('[data-pagination]')).toHaveCount(0);
+			await expect(page.locator('[data-pagination]')).toBeHidden();
 			expect(await allPostsGrid.count()).toBe(initialAllPostCount);
 
 			await searchInput.fill('asdf');
@@ -79,13 +79,14 @@ test.describe('Home page', () => {
 			expect(await allPostsGrid.count()).toBe(initialAllPostCount);
 		});
 
-	test('keeps the featured post out of the first archive grid when the first page fits', async ({ page }) => {
+	test('keeps the featured post out while showing pagination when the archive continues', async ({ page }) => {
 		await page.goto('/');
 		await expect(page.locator('[data-search-count]')).toBeHidden();
-		await expect(page.locator('[data-pagination]')).toHaveCount(0);
+		await expect(page.locator('[data-pagination]')).toBeVisible();
+		await expect(page.getByRole('link', { name: 'Next' })).toBeVisible();
 		const archiveTitles = page.locator('[data-post-grid] h3');
 		expect(await archiveTitles.count()).toBe(9);
 		await expect(archiveTitles.filter({ hasText: 'From Refactor Tools to Change Plans' })).toHaveCount(0);
-		await expect(archiveTitles.first()).toHaveText('Dependabot Is an Update Scout');
+		await expect(archiveTitles.first()).toHaveText('EC2 Disk and Swap Resilience: Headroom Before Emergencies');
 	});
 });
