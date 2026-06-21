@@ -230,10 +230,6 @@ Let the bot scout. Let CI test. Let a human decide.
 
 That is the safer shape of maintenance automation.
 
-## Source notes
-
-This draft was checked against GitHub Docs search results for Dependabot version updates and the Dependabot options reference on 2026-06-20. Before publication, re-check the official pages if the article expands the configuration example or makes ecosystem-specific claims.
-
 ---
 
 # From Refactor Tools to Change Plans
