@@ -157,9 +157,10 @@ document.addEventListener('DOMContentLoaded', () => {
 	basePath={basePath}
 	alternateHref={alternateHref}
 	alternateLabel={alternateLabel}
+	canonicalURL={canonical}
+	ogType="article"
 >
 	<Fragment slot="head">
-		{canonical && <link rel="canonical" href={canonical} />}
 		<script type="application/ld+json" set:html={JSON.stringify({
 			"@context": "https://schema.org",
 			"@type": "Article",
