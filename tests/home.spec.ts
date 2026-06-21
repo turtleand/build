@@ -28,6 +28,8 @@ test.describe('Home page', () => {
 		await firstCard.click();
 		await expect(page).toHaveURL(/\/blog\//);
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText(postTitle);
+		await expect(page.getByText('Build note')).toBeVisible();
+		await expect(page.getByLabel('Reading frame')).toContainText('Context');
 
 		const postTagLink = page.locator('.tags a').first();
 		const tagLabel = (await postTagLink.textContent())?.trim() ?? '';
@@ -36,10 +38,20 @@ test.describe('Home page', () => {
 		await postTagLink.click();
 		await expect(page).toHaveURL(/\/tags\//);
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText(tagLabel);
+		await expect(page.getByText('Topic archive')).toBeVisible();
 
 		const tagPostCards = page.locator('.post-card');
 		await expect(tagPostCards.first()).toBeVisible();
 		expect(await tagPostCards.count()).toBeGreaterThan(0);
+	});
+
+	test('orients the tags index as a Build topic map', async ({ page }) => {
+		await page.goto('/tags/');
+
+		await expect(page.getByText('Build map')).toBeVisible();
+		await expect(page.getByRole('heading', { level: 1, name: 'Tags' })).toBeVisible();
+		await expect(page.getByLabel('Cluster')).toContainText('Language');
+		await expect(page.locator('.tag-list a').first()).toBeVisible();
 	});
 
 		test('filters posts via search keywords without affecting the archive grid', async ({ page }) => {

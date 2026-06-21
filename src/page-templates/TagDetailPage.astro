@@ -16,6 +16,10 @@ const dictionary = getDictionary(locale);
 const altLocale = otherLocale(locale);
 const alternateHref = altLocale === 'es' ? '/es/tags' : '/tags';
 const alternateLabel = dictionary.navigation.locales[altLocale].aria;
+const detailKicker = locale === 'es' ? 'Archivo por tema' : 'Topic archive';
+const resultLabel = locale === 'es'
+	? `${summary.count} notas en este tema`
+	: `${summary.count} notes in this topic`;
 ---
 
 <BlogLayout
@@ -27,25 +31,43 @@ const alternateLabel = dictionary.navigation.locales[altLocale].aria;
 	alternateHref={alternateHref}
 	alternateLabel={alternateLabel}
 >
-	<section class="section">
-		<p class="back-link"><a href={`${basePath}/tags`}>← {dictionary.tagsPage.backLabel}</a></p>
-		<h1>{summary.label}</h1>
-		<p class="lede">{summary.count} {dictionary.tagsPage.countLabel}</p>
-		<div class="grid">
+	<section class="tag-detail" aria-labelledby="tag-detail-title">
+		<header class="topic-hero">
+			<p class="back-link"><a href={`${basePath}/tags`}>← {dictionary.tagsPage.backLabel}</a></p>
+			<p class="topic-kicker">{detailKicker}</p>
+			<div class="topic-title-row">
+				<h1 id="tag-detail-title">{summary.label}</h1>
+				<span class="topic-count">{resultLabel}</span>
+			</div>
+		</header>
+		<div class="feed-list">
 			{summary.posts.map((post) => (
-				<PostCard post={post} locale={locale} basePath={basePath} dictionary={dictionary} />
+				<PostCard post={post} locale={locale} basePath={basePath} dictionary={dictionary} variant="list" />
 			))}
 		</div>
 	</section>
 </BlogLayout>
 
 <style>
-.section {
-	margin-top: 1rem;
+.tag-detail {
+	margin-top: 1.75rem;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.topic-hero {
+	padding: clamp(1.2rem, 3vw, 1.6rem);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	background:
+		linear-gradient(90deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent 42%),
+		var(--surface-card);
+	box-shadow: var(--shadow-soft);
 }
 
 .back-link {
-	margin: 0 0 0.75rem;
+	margin: 0 0 1rem;
 }
 
 .back-link a {
@@ -59,22 +81,45 @@ const alternateLabel = dictionary.navigation.locales[altLocale].aria;
 	text-decoration: underline;
 }
 
+.topic-kicker {
+	margin: 0 0 0.4rem;
+	font-family: var(--font-code);
+	font-size: 0.78rem;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--accent);
+}
+
+.topic-title-row {
+	display: flex;
+	align-items: end;
+	justify-content: space-between;
+	gap: 1rem;
+	flex-wrap: wrap;
+}
+
 h1 {
 	margin: 0;
 	font-family: var(--font-heading);
+	font-size: clamp(2rem, 4.5vw, 3.25rem);
+	letter-spacing: -0.04em;
+	line-height: 1;
 }
 
-.lede {
-	margin: 0.25rem 0 1rem;
+.topic-count {
+	border: 1px solid var(--border);
+	border-radius: var(--radius-pill);
+	background: var(--surface-card);
+	padding: 0.4rem 0.75rem;
+	font-size: 0.9rem;
 	color: var(--text-muted);
+	box-shadow: var(--shadow-soft);
 }
 
-.grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-	grid-auto-rows: 1fr;
-	gap: 1.4rem;
-	margin-top: 1.35rem;
-	align-items: stretch;
+.feed-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.9rem;
 }
 </style>
