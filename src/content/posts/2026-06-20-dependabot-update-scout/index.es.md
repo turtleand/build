@@ -98,7 +98,3 @@ Dependabot es útil porque convierte el drift de dependencias en trabajo visible
 Dejá que el bot explore. Dejá que CI pruebe. Dejá que una persona decida.
 
 Esa es una forma más segura de automatizar mantenimiento.
-
-## Notas de fuente
-
-Este borrador fue contrastado con resultados de GitHub Docs sobre Dependabot version updates y la referencia de opciones de Dependabot el 2026-06-20. Antes de publicar, re-chequeá las páginas oficiales si el artículo expande la configuración o hace afirmaciones específicas por ecosistema.

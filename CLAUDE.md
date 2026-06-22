@@ -94,6 +94,7 @@ Every content PR must:
 - [ ] Build succeeds (llms.txt and llms-full.txt auto-generated)
 - [ ] JSON-LD Article schema auto-included via PostPage template
 - [ ] Author always "Turtleand" (pseudonymous, no real name, no LinkedIn)
+- [ ] Public prose and PR bodies avoid internal source notes, draft-status wording, private data, credentials, and operational weaknesses
 
 ## Bot Translation Layer
 - `/llms.txt` — Auto-generated at build time listing all English posts
@@ -114,6 +115,7 @@ Every content PR must:
 - [ ] Build succeeds (llms.txt and llms-full.txt auto-generated)
 - [ ] JSON-LD Article schema auto-included via layout
 - [ ] Author always "Turtleand" (pseudonymous, no real name, no LinkedIn)
+- [ ] Public prose and PR bodies avoid internal source notes, draft-status wording, private data, credentials, and operational weaknesses
 
 ## Bot Translation Layer
 - `/llms.txt` — Auto-generated at build time listing all posts

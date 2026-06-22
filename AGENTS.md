@@ -28,9 +28,9 @@ Applies only to `build/`.
 
 ## Public-safety review
 
-Reject changes that expose secrets, credentials, private infrastructure details, internal paths, specific vulnerabilities, or operational weaknesses. Safe public lessons are allowed when they describe general patterns, architecture trade-offs, defensive principles, or non-sensitive implementation choices.
+Reject changes that expose secrets, credentials, private infrastructure details, internal paths, specific vulnerabilities, operational weaknesses, personal information, private data, internal source notes, or draft-status prose. Safe public lessons are allowed when they describe general patterns, architecture trade-offs, defensive principles, or non-sensitive implementation choices.
 
-Keep private things private. Share learnings, not exposure.
+Keep private things private. Share learnings, not exposure. Public articles and PR bodies should explain the reusable lesson, not the private drafting or review process.
 
 ## Technical and content quality review
 
