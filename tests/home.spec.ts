@@ -66,6 +66,8 @@ test.describe('Home page', () => {
 			await expect(resultsGrid.first()).toBeVisible();
 			const resultCount = await resultsGrid.count();
 			expect(resultCount).toBeGreaterThanOrEqual(3);
+			expect(await resultsGrid.first().locator('.card-link').evaluate((node) => getComputedStyle(node).display)).toBe('grid');
+			expect(await resultsGrid.first().evaluate((node) => getComputedStyle(node).borderTopStyle)).toBe('solid');
 			await expect(page.getByRole('heading', { level: 3, name: 'Spying Without Replacing with mocker.spy' })).toBeVisible();
 			await expect(page.getByRole('heading', { level: 3, name: 'Dependency Injection' })).toBeVisible();
 			await expect(page.getByRole('button', { name: 'Clear search' })).toBeVisible();
@@ -77,6 +79,10 @@ test.describe('Home page', () => {
 			await expect(page.locator('[data-search-grid] .post-card')).toHaveCount(0);
 			await expect(page.getByText('No posts match your search.')).toBeVisible();
 			expect(await allPostsGrid.count()).toBe(initialAllPostCount);
+
+			await searchInput.fill('swapfile');
+			await expect(page.getByRole('heading', { level: 3, name: 'EC2 Disk and Swap Resilience: Headroom Before Emergencies' })).toBeVisible();
+			expect(await resultsGrid.count()).toBeGreaterThanOrEqual(1);
 		});
 
 	test('keeps the featured post out while showing pagination when the archive continues', async ({ page }) => {

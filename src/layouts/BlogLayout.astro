@@ -1,7 +1,4 @@
 ---
-import "@fontsource-variable/inter";
-import "@fontsource-variable/space-grotesk";
-import "@fontsource-variable/jetbrains-mono";
 import randomArticleScript from "../scripts/random-article.js?url";
 import type { Dictionary, Locale } from "../utils/i18n";
 
@@ -277,7 +274,7 @@ const randomArticleLabel = dictionary.randomArticleModal?.label ?? "Choosing a r
 
 <style is:global>
 	:root {
-		--font-heading: "Space Grotesk", "IBM Plex Sans", "Inter", sans-serif;
+		--font-heading: "Space Grotesk", "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
 		--font-body: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
 		--font-code: "JetBrains Mono", "Fira Code", "Source Code Pro", monospace;
 		--shadow-soft: 0 20px 60px -45px rgba(17, 24, 39, 0.55);

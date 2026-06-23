@@ -2,7 +2,7 @@
 import { getCollection } from 'astro:content';
 import BlogLayout from '../layouts/BlogLayout.astro';
 import PostCard from '../components/PostCard.astro';
-import { POSTS_PER_PAGE, excludeResearchNotes, filterByLocale, filterPublished, formatDate, getPostSlug, sortPosts } from '../utils/blog';
+import { POSTS_PER_PAGE, excludeResearchNotes, filterByLocale, filterPublished, getPostSlug, sortPosts } from '../utils/blog';
 import type { Locale } from '../utils/i18n';
 import { getDictionary, otherLocale } from '../utils/i18n';
 import homeSearchScript from '../scripts/home-search.js?url';
@@ -31,30 +31,29 @@ const buildHref = (path: string) => {
 	return `${base}${normalized}`.replace(/\/{2,}/g, '/');
 };
 
+const escapeForScript = (payload: unknown) => JSON.stringify(payload).replace(/</g, '\\u003c');
+
 const stripMarkdown = (value: string) =>
 	value
 		.replace(/```[\s\S]*?```/g, ' ')
-		.replace(/`[^`]*`/g, ' ')
+		.replace(/`([^`]*)`/g, '$1')
 		.replace(/!\[[^\]]*]\([^)]*\)/g, ' ')
-		.replace(/\[[^\]]*]\([^)]*\)/g, ' ')
+		.replace(/\[([^\]]*)]\([^)]*\)/g, '$1')
 		.replace(/[#>*_~]/g, ' ')
 		.replace(/<\/?[^>]+(>|$)/g, ' ')
 		.replace(/\s+/g, ' ')
 		.trim();
 
-const escapeForScript = (payload: unknown) => JSON.stringify(payload).replace(/</g, '\\u003c');
+const compactSearchText = (body: string | undefined) => stripMarkdown(body ?? '').slice(0, 700);
 
 const searchDocuments = posts.map((post) => {
 	const slug = getPostSlug(post);
-	const bodyText = stripMarkdown(post.body ?? '');
 	return {
 		id: slug,
 		title: post.data.title,
 		description: post.data.description,
 		tags: post.data.tags,
-		body: bodyText || post.data.description,
-		href: buildHref(`/blog/${slug}`),
-		dateLabel: formatDate(post.data.date, locale),
+		searchText: compactSearchText(post.body),
 	};
 });
 
@@ -107,6 +106,13 @@ const searchConfigScript = escapeForScript({
 		</div>
 		<p class="search-empty" data-search-empty hidden>{dictionary.search.empty}</p>
 		<div class="feed-list search-results" data-search-grid hidden></div>
+		<div hidden>
+			{posts.map((post) => (
+				<template data-search-card-template={getPostSlug(post)}>
+					<PostCard post={post} locale={locale} basePath={basePath} dictionary={dictionary} variant="list" />
+				</template>
+			))}
+		</div>
 		<div class="feed-list" data-post-grid>
 			{feedPosts.map((post) => (
 				<PostCard post={post} locale={locale} basePath={basePath} dictionary={dictionary} variant="list" />
@@ -124,14 +130,6 @@ const searchConfigScript = escapeForScript({
 
 <script type="application/json" id="home-search-data" set:html={searchDataScript}></script>
 <script type="application/json" id="home-search-config" set:html={searchConfigScript}></script>
-<div hidden aria-hidden="true" data-card-templates>
-	{posts.map((post) => (
-		<template data-card-template data-slug={getPostSlug(post)}>
-			<PostCard post={post} locale={locale} basePath={basePath} dictionary={dictionary} variant="list" />
-		</template>
-	))}
-</div>
-<script src="/vendor/fuse.min.js" is:inline></script>
 <script type="module" src={homeSearchScript}></script>
 
 <style>
