@@ -62,6 +62,18 @@ const searchDocs = (docs, query) => {
   );
 };
 
+const safeInternalPath = (value, allowedPrefix) => {
+  try {
+    const url = new URL(value, window.location.origin);
+    if (url.origin === window.location.origin && url.pathname.startsWith(allowedPrefix)) {
+      return `${url.pathname}${url.search}${url.hash}`;
+    }
+  } catch (_) {
+    // Fall through to the inert fallback.
+  }
+  return '#';
+};
+
 const setupSearch = () => {
   const dataEl = document.getElementById(DATA_ID);
   const configEl = document.getElementById(CONFIG_ID);
@@ -104,12 +116,12 @@ const setupSearch = () => {
     article.className = 'post-card post-card--list';
 
     const link = appendElement(article, 'a', 'card-link');
-    link.setAttribute('href', doc.href);
+    link.href = safeInternalPath(doc.href, '/blog/');
     link.setAttribute('aria-label', `${config.readMoreLabel || 'Read more'}: ${doc.title}`);
 
     if (doc.image?.src) {
       const image = appendElement(link, 'img', 'post-thumb post-thumb--image');
-      image.setAttribute('src', doc.image.src);
+      image.src = safeInternalPath(doc.image.src, '/images/');
       image.setAttribute('alt', doc.image.alt || '');
       image.setAttribute('loading', 'lazy');
       image.setAttribute('decoding', 'async');
