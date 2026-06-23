@@ -2,7 +2,7 @@
 import { getCollection } from 'astro:content';
 import BlogLayout from '../layouts/BlogLayout.astro';
 import PostCard from '../components/PostCard.astro';
-import { POSTS_PER_PAGE, excludeResearchNotes, filterByLocale, filterPublished, formatDate, getPostSlug, sortPosts } from '../utils/blog';
+import { POSTS_PER_PAGE, excludeResearchNotes, filterByLocale, filterPublished, getPostSlug, sortPosts } from '../utils/blog';
 import type { Locale } from '../utils/i18n';
 import { getDictionary, otherLocale } from '../utils/i18n';
 import homeSearchScript from '../scripts/home-search.js?url';
@@ -54,14 +54,6 @@ const searchDocuments = posts.map((post) => {
 		description: post.data.description,
 		tags: post.data.tags,
 		searchText: compactSearchText(post.body),
-		href: buildHref(`/blog/${slug}`),
-		dateLabel: formatDate(post.data.date, locale),
-		image: post.data.image
-			? {
-				src: post.data.image.src,
-				alt: post.data.image.alt,
-			}
-			: null,
 	};
 });
 
@@ -114,6 +106,13 @@ const searchConfigScript = escapeForScript({
 		</div>
 		<p class="search-empty" data-search-empty hidden>{dictionary.search.empty}</p>
 		<div class="feed-list search-results" data-search-grid hidden></div>
+		<div hidden>
+			{posts.map((post) => (
+				<template data-search-card-template={getPostSlug(post)}>
+					<PostCard post={post} locale={locale} basePath={basePath} dictionary={dictionary} variant="list" />
+				</template>
+			))}
+		</div>
 		<div class="feed-list" data-post-grid>
 			{feedPosts.map((post) => (
 				<PostCard post={post} locale={locale} basePath={basePath} dictionary={dictionary} variant="list" />

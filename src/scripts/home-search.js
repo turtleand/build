@@ -1,19 +1,10 @@
 /**
- * @typedef {Object} SearchImage
- * @property {string} src
- * @property {string} alt
- */
-
-/**
  * @typedef {Object} SearchDoc
  * @property {string} id
  * @property {string} title
  * @property {string} description
  * @property {string[]} tags
  * @property {string} searchText
- * @property {string} href
- * @property {string} dateLabel
- * @property {SearchImage | null} image
  */
 
 /**
@@ -62,18 +53,6 @@ const searchDocs = (docs, query) => {
   );
 };
 
-const safeInternalPath = (value, allowedPrefix) => {
-  try {
-    const url = new URL(value, window.location.origin);
-    if (url.origin === window.location.origin && url.pathname.startsWith(allowedPrefix)) {
-      return `${url.pathname}${url.search}${url.hash}`;
-    }
-  } catch (_) {
-    // Fall through to the inert fallback.
-  }
-  return '#';
-};
-
 const setupSearch = () => {
   const dataEl = document.getElementById(DATA_ID);
   const configEl = document.getElementById(CONFIG_ID);
@@ -108,44 +87,28 @@ const setupSearch = () => {
     return;
   }
 
+  const cardTemplates = new Map(
+    Array.from(document.querySelectorAll('template[data-search-card-template]')).map((template) => [
+      template.dataset.searchCardTemplate,
+      template,
+    ]),
+  );
+
   /**
    * @param {SearchDoc} doc
    */
   const buildCardNode = (doc) => {
+    const template = cardTemplates.get(doc.id);
+    const card = template?.content.firstElementChild?.cloneNode(true);
+    if (card instanceof HTMLElement) return card;
+
     const article = document.createElement('article');
     article.className = 'post-card post-card--list';
 
-    const link = appendElement(article, 'a', 'card-link');
-    link.href = safeInternalPath(doc.href, '/blog/');
-    link.setAttribute('aria-label', `${config.readMoreLabel || 'Read more'}: ${doc.title}`);
-
-    if (doc.image?.src) {
-      const image = appendElement(link, 'img', 'post-thumb post-thumb--image');
-      image.src = safeInternalPath(doc.image.src, '/images/');
-      image.setAttribute('alt', doc.image.alt || '');
-      image.setAttribute('loading', 'lazy');
-      image.setAttribute('decoding', 'async');
-    } else {
-      const thumb = appendElement(link, 'div', 'post-thumb post-thumb--placeholder');
-      thumb.setAttribute('aria-hidden', 'true');
-      appendElement(thumb, 'span', '').textContent = '</>';
-    }
-
-    const content = appendElement(link, 'div', 'post-content');
+    const content = appendElement(article, 'div', 'post-content');
     const top = appendElement(content, 'div', 'post-top');
     appendElement(top, 'h3', '').textContent = doc.title;
-    appendElement(top, 'p', 'post-date').textContent = doc.dateLabel;
     appendElement(content, 'p', 'post-description').textContent = doc.description;
-
-    if (doc.tags.length > 0) {
-      const tagsRow = appendElement(content, 'div', 'tags-row');
-      const tags = appendElement(tagsRow, 'ul', 'tags');
-      tags.setAttribute('aria-label', config.tagsLabel || 'Tags');
-      doc.tags.forEach((tag) => {
-        const item = appendElement(tags, 'li', '');
-        appendElement(item, 'span', '').textContent = tag;
-      });
-    }
 
     return article;
   };
