@@ -7,17 +7,14 @@
     "generate:llms": "node scripts/generate-llms.mjs",
     "build": "node scripts/snippet-sync.mjs && node scripts/generate-llms.mjs && astro build",
     "preview": "astro preview",
+    "perf:audit": "node scripts/perf-audit.mjs",
     "astro": "astro",
     "test": "playwright test",
     "test:e2e": "playwright test"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
-    "@fontsource-variable/inter": "^5.2.8",
-    "@fontsource-variable/jetbrains-mono": "^5.2.8",
-    "@fontsource-variable/space-grotesk": "^5.2.10",
-    "astro": "^6.4.8",
-    "fuse.js": "^7.1.0"
+    "astro": "^6.4.8"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1"

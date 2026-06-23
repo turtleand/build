@@ -1,12 +1,19 @@
 /**
+ * @typedef {Object} SearchImage
+ * @property {string} src
+ * @property {string} alt
+ */
+
+/**
  * @typedef {Object} SearchDoc
  * @property {string} id
  * @property {string} title
  * @property {string} description
  * @property {string[]} tags
- * @property {string} body
+ * @property {string} searchText
  * @property {string} href
  * @property {string} dateLabel
+ * @property {SearchImage | null} image
  */
 
 /**
@@ -19,12 +26,6 @@
 
 const DATA_ID = 'home-search-data';
 const CONFIG_ID = 'home-search-config';
-const getFuse = () => {
-	if (typeof window === 'undefined') return null;
-	if (window.Fuse) return window.Fuse;
-	console.warn('Fuse library not found on window.');
-	return null;
-};
 
 /**
  * @param {string | undefined} template
@@ -32,6 +33,34 @@ const getFuse = () => {
  */
 const replaceCount = (template, count) =>
   (template || '').replace('{count}', String(count));
+
+/**
+ * @template {keyof HTMLElementTagNameMap} T
+ * @param {HTMLElement} parent
+ * @param {T} tag
+ * @param {string} className
+ * @returns {HTMLElementTagNameMap[T]}
+ */
+const appendElement = (parent, tag, className) => {
+  const element = document.createElement(tag);
+  if (className) element.className = className;
+  parent.append(element);
+  return element;
+};
+
+/**
+ * @param {SearchDoc[]} docs
+ * @param {string} query
+ */
+const searchDocs = (docs, query) => {
+  const normalizedQuery = query.toLocaleLowerCase();
+  return docs.filter((doc) =>
+    [doc.title, doc.description, doc.searchText, ...doc.tags]
+      .join(' ')
+      .toLocaleLowerCase()
+      .includes(normalizedQuery),
+  );
+};
 
 const setupSearch = () => {
   const dataEl = document.getElementById(DATA_ID);
@@ -47,23 +76,6 @@ const setupSearch = () => {
   /** @type {SearchConfig} */
   const config = JSON.parse(configEl.textContent || '{}');
 
-  const fuseLib = getFuse();
-
-  const fuse =
-    docs.length > 0 && fuseLib
-      ? new fuseLib(docs, {
-        keys: [
-          { name: 'title', weight: 0.4 },
-          { name: 'description', weight: 0.2 },
-          { name: 'body', weight: 0.3 },
-          { name: 'tags', weight: 0.1 },
-        ],
-        threshold: 0.3,
-        ignoreLocation: false,
-        minMatchCharLength: 4,
-      })
-      : null;
-
   /** @type {HTMLInputElement | null} */
   const input = document.querySelector('[data-search-input]');
   /** @type {HTMLButtonElement | null} */
@@ -78,55 +90,61 @@ const setupSearch = () => {
   const emptyState = document.querySelector('[data-search-empty]');
   /** @type {HTMLElement | null} */
   const countLabel = document.querySelector('[data-search-count]');
-  /** @type {NodeListOf<HTMLTemplateElement>} */
-  const templateNodes = document.querySelectorAll('[data-card-template]');
 
   if (!input || !clearBtn || !resultsGrid || !emptyState || !countLabel) {
     console.warn('Search UI missing required elements.');
     return;
   }
 
-  /** @type {Map<string, HTMLTemplateElement>} */
-  const templateMap = new Map();
-  templateNodes.forEach((tpl) => {
-    const slug = tpl.dataset.slug;
-    if (slug) templateMap.set(slug, tpl);
-  });
-
   /**
    * @param {SearchDoc} doc
    */
   const buildCardNode = (doc) => {
-    const template = templateMap.get(doc.id);
-    if (template) {
-      const fragment = template.content.cloneNode(true);
-      const element = fragment.firstElementChild;
-      if (element) return /** @type {HTMLElement} */ (element);
+    const article = document.createElement('article');
+    article.className = 'post-card post-card--list';
+
+    const link = appendElement(article, 'a', 'card-link');
+    link.setAttribute('href', doc.href);
+    link.setAttribute('aria-label', `${config.readMoreLabel || 'Read more'}: ${doc.title}`);
+
+    if (doc.image?.src) {
+      const image = appendElement(link, 'img', 'post-thumb post-thumb--image');
+      image.setAttribute('src', doc.image.src);
+      image.setAttribute('alt', doc.image.alt || '');
+      image.setAttribute('loading', 'lazy');
+      image.setAttribute('decoding', 'async');
+    } else {
+      const thumb = appendElement(link, 'div', 'post-thumb post-thumb--placeholder');
+      thumb.setAttribute('aria-hidden', 'true');
+      appendElement(thumb, 'span', '').textContent = '</>';
     }
 
-    // Fallback: basic card if template missing
-    const fallback = document.createElement('article');
-    fallback.className = 'post-card post-card--list';
-    fallback.innerHTML = `
-      <a class="card-link" href="${doc.href}">
-        <div class="post-thumb" aria-hidden="true"></div>
-        <div class="post-content">
-        <div class="post-top">
-          <h3>${doc.title}</h3>
-          <p class="post-date">${doc.dateLabel}</p>
-        </div>
-        <p class="post-description">${doc.description}</p>
-        </div>
-      </a>
-    `;
-    return fallback;
+    const content = appendElement(link, 'div', 'post-content');
+    const top = appendElement(content, 'div', 'post-top');
+    appendElement(top, 'h3', '').textContent = doc.title;
+    appendElement(top, 'p', 'post-date').textContent = doc.dateLabel;
+    appendElement(content, 'p', 'post-description').textContent = doc.description;
+
+    if (doc.tags.length > 0) {
+      const tagsRow = appendElement(content, 'div', 'tags-row');
+      const tags = appendElement(tagsRow, 'ul', 'tags');
+      tags.setAttribute('aria-label', config.tagsLabel || 'Tags');
+      doc.tags.forEach((tag) => {
+        const item = appendElement(tags, 'li', '');
+        appendElement(item, 'span', '').textContent = tag;
+      });
+    }
+
+    return article;
   };
 
   const setDefaultState = () => {
-    resultsGrid.innerHTML = '';
+    resultsGrid.replaceChildren();
     resultsGrid.hidden = true;
     emptyState.hidden = true;
+    emptyState.removeAttribute('data-search-query');
     countLabel.textContent = '';
+    countLabel.removeAttribute('data-search-query');
     countLabel.hidden = true;
     clearBtn.hidden = true;
     if (defaultGrid) {
@@ -143,20 +161,20 @@ const setupSearch = () => {
    * @param {SearchDoc[]} matches
    */
   const renderMatches = (matches) => {
-    const nodes = matches
-      .map((match) => buildCardNode(match))
-      .filter((node) => Boolean(node));
+    const nodes = matches.map((match) => buildCardNode(match));
     const hasMatches = matches.length > 0;
     if (hasMatches) {
       resultsGrid.replaceChildren(...nodes);
       resultsGrid.hidden = false;
       emptyState.hidden = true;
     } else {
-      resultsGrid.innerHTML = '';
+      resultsGrid.replaceChildren();
       resultsGrid.hidden = true;
       emptyState.hidden = false;
     }
     countLabel.textContent = replaceCount(config.countResults, matches.length);
+    countLabel.dataset.searchQuery = input.value.trim();
+    emptyState.dataset.searchQuery = input.value.trim();
     countLabel.hidden = false;
     clearBtn.hidden = false;
     if (defaultGrid) {
@@ -171,13 +189,12 @@ const setupSearch = () => {
 
   const runSearch = () => {
     const query = input.value.trim();
-    if (!fuse || query.length === 0) {
+    if (query.length === 0) {
       setDefaultState();
       return;
     }
 
-    const matches = fuse.search(query).map((item) => item.item);
-    renderMatches(matches);
+    renderMatches(searchDocs(docs, query));
   };
 
   input.addEventListener('input', runSearch);
