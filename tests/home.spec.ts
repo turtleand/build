@@ -93,6 +93,6 @@ test.describe('Home page', () => {
 		const archiveTitles = page.locator('[data-post-grid] h3');
 		expect(await archiveTitles.count()).toBe(9);
 		await expect(archiveTitles.filter({ hasText: 'From Refactor Tools to Change Plans' })).toHaveCount(0);
-		await expect(archiveTitles.first()).toHaveText('EC2 Disk and Swap Resilience: Headroom Before Emergencies');
+		await expect(archiveTitles.first()).toHaveText('Git Worktrees Are Separate Desks');
 	});
 });
