@@ -3,6 +3,7 @@
 > Engineering fundamentals, software craft, and deep technical understanding.
 
 ## Articles
+- [Git Worktrees Are Separate Desks](https://build.turtleand.com/blog/2026-06-25-git-worktrees-separate-desks/): A simple mental model for Git worktrees: separate folders for the same repository history, each with its own files, staging area, and HEAD.
 - [EC2 Disk and Swap Resilience: Headroom Before Emergencies](https://build.turtleand.com/blog/2026-06-21-ec2-disk-swap-resilience/): A practical runbook for expanding EC2 disk space before increasing swap, so small servers survive temporary pressure without treating swap as real RAM.
 - [Dependabot Is an Update Scout](https://build.turtleand.com/blog/2026-06-20-dependabot-update-scout/): A beginner-friendly explanation of how Dependabot watches project dependencies, opens update pull requests, and still leaves tests and human review in charge.
 - [From Refactor Tools to Change Plans](https://build.turtleand.com/blog/2026-06-19-refactor-tools-to-change-plans/): Why AI agents make the old lesson of IDE refactoring broader: inspect the system before changing it.
