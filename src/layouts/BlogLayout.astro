@@ -31,6 +31,8 @@ const resolvedDescription = description ?? dictionary.site.description;
 const resolvedCanonicalURL = canonicalURL ?? new URL(Astro.url.pathname, Astro.site).href;
 const resolvedOgImage = new URL(ogImage, resolvedCanonicalURL).href;
 const siteName = dictionary.site.title;
+const rssHref = locale === "es" ? "/es/rss.xml" : "/rss.xml";
+const rssTitle = locale === "es" ? "Turtleand Build en español RSS" : "Turtleand Build RSS";
 const base = basePath === "/" ? "" : basePath;
 const buildHref = (path: string) => {
 	const normalized = path.startsWith("/") ? path : `/${path}`;
@@ -122,6 +124,7 @@ const randomArticleLabel = dictionary.randomArticleModal?.label ?? "Choosing a r
 		<meta name="title" content={title} />
 		<meta name="description" content={resolvedDescription} />
 		<link rel="canonical" href={resolvedCanonicalURL} />
+		<link rel="alternate" type="application/rss+xml" title={rssTitle} href={rssHref} />
 		<meta property="og:type" content={ogType} />
 		<meta property="og:site_name" content={siteName} />
 		<meta property="og:title" content={title} />
