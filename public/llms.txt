@@ -3,6 +3,7 @@
 > Engineering fundamentals, software craft, and deep technical understanding.
 
 ## Articles
+- [Programs, Processes, and Operating-System Execution](https://build.turtleand.com/blog/2026-08-02-programs-processes-operating-system-execution/): How static instructions become a running server, what a process contains, and where the operating system mediates between application code and hardware.
 - [RSS as a Simple Distribution Protocol](https://build.turtleand.com/blog/2026-06-30-rss-simple-distribution-protocol/): A short technical model for RSS: one stable feed URL, many item entries, article links, dates, and stable GUIDs so readers can notice new work.
 - [Git Worktrees Are Separate Desks](https://build.turtleand.com/blog/2026-06-25-git-worktrees-separate-desks/): A simple mental model for Git worktrees: separate folders for the same repository history, each with its own files, staging area, and HEAD.
 - [EC2 Disk and Swap Resilience: Headroom Before Emergencies](https://build.turtleand.com/blog/2026-06-21-ec2-disk-swap-resilience/): A practical runbook for expanding EC2 disk space before increasing swap, so small servers survive temporary pressure without treating swap as real RAM.

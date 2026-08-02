@@ -24,6 +24,12 @@ const posts = defineCollection({
     locale: z.enum(['en', 'es']).default('en'),
     translationKey: z.string().optional(),
     isResearchNotes: z.boolean().default(false),
+    learningModule: z
+      .object({
+        id: z.string(),
+        lesson: z.number().int().positive(),
+      })
+      .optional(),
   }),
 });
 
