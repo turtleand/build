@@ -1,5 +1,7 @@
 ---
 import { render } from "astro:content";
+import LearningModule from "../components/LearningModule.astro";
+import { getLearningModule } from "../data/learning-modules";
 import BlogLayout from "../layouts/BlogLayout.astro";
 import type { PostEntry } from "../utils/blog";
 import { formatDate, getPostSlug, getTagSlug } from "../utils/blog";
@@ -91,11 +93,23 @@ const researchNotesCopy = {
 	openLabel: dictionary.postPage.researchNotes?.openLabel ?? "Open Research Notes",
 	collapseLabel: dictionary.postPage.researchNotes?.collapseLabel ?? "Collapse Research Notes",
 };
-const articleKicker = locale === "es" ? "Nota Build" : "Build note";
-const articleProtocolLabel = locale === "es" ? "Forma de lectura" : "Reading frame";
-const articleProtocolSteps = locale === "es"
-	? ["Contexto", "Decisión", "Prueba"]
-	: ["Context", "Decision", "Proof"];
+const learningModuleReference = post.data.learningModule;
+const learningModule = learningModuleReference
+	? getLearningModule(learningModuleReference.id)
+	: undefined;
+const learningModuleLesson = learningModuleReference?.lesson;
+const moduleLessonCount = learningModule?.lessons.length;
+const articleKicker = learningModule && learningModuleLesson && moduleLessonCount
+	? locale === "es"
+		? `Módulo Build · Lección ${learningModuleLesson} de ${moduleLessonCount}`
+		: `Build module · Lesson ${learningModuleLesson} of ${moduleLessonCount}`
+	: locale === "es" ? "Nota Build" : "Build note";
+const articleProtocolLabel = learningModule
+	? locale === "es" ? "Ruta conceptual" : "Concept path"
+	: locale === "es" ? "Forma de lectura" : "Reading frame";
+const articleProtocolSteps = learningModule
+	? learningModule.frame[locale]
+	: locale === "es" ? ["Contexto", "Decisión", "Prueba"] : ["Context", "Decision", "Proof"];
 const researchNotesScript = showResearchNotesInline
 	? `
 document.addEventListener('DOMContentLoaded', () => {
@@ -174,7 +188,14 @@ document.addEventListener('DOMContentLoaded', () => {
 			"datePublished": post.data.date instanceof Date ? post.data.date.toISOString() : post.data.date,
 			"author": { "@type": "Person", "name": "Turtleand", "url": "https://turtleand.com" },
 			"publisher": { "@type": "Person", "name": "Turtleand", "url": "https://turtleand.com" },
-			"mainEntityOfPage": canonical || `https://build.turtleand.com/blog/${getPostSlug(post)}/`
+			"mainEntityOfPage": canonical || `https://build.turtleand.com/blog/${getPostSlug(post)}/`,
+			...(learningModule && learningModuleLesson ? {
+				"isPartOf": {
+					"@type": "CreativeWorkSeries",
+					"name": learningModule.title[locale],
+				},
+				"position": learningModuleLesson,
+			} : {})
 		})} />
 	</Fragment>
 	{hasTimeline && <script is:inline set:html={timelineToggleScript} />}
@@ -231,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					</div>
 				)
 			}
-			<article class="post">
+			<article class:list={["post", { "has-learning-module": Boolean(learningModule) }]}>
 				<header class="post-hero">
 					<p class="back-link">
 						<a href={basePath || "/"}>← {dictionary.postPage.backLabel}</a>
@@ -265,6 +286,16 @@ document.addEventListener('DOMContentLoaded', () => {
 					}
 				</header>
 				<div class="post-body">
+					{
+						learningModule && learningModuleLesson && (
+							<LearningModule
+								module={learningModule}
+								currentLesson={learningModuleLesson}
+								locale={locale}
+								basePath={basePath}
+							/>
+						)
+					}
 					<div class="content">
 						<Content />
 					</div>
@@ -389,6 +420,11 @@ document.addEventListener('DOMContentLoaded', () => {
 		letter-spacing: -0.045em;
 		line-height: 0.98;
 		max-width: 13ch;
+	}
+
+	.post.has-learning-module h1 {
+		max-width: 18ch;
+		font-size: clamp(2.05rem, 5vw, 3.7rem);
 	}
 
 	.post-summary {

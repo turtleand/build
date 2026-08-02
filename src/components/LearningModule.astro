@@ -1,0 +1,359 @@
+---
+import type { LearningModule } from '../data/learning-modules';
+import type { Locale } from '../utils/i18n';
+
+interface Props {
+  module: LearningModule;
+  currentLesson: number;
+  locale: Locale;
+  basePath?: string;
+}
+
+const { module, currentLesson, locale, basePath = '' } = Astro.props as Props;
+const lessonCount = module.lessons.length;
+const next = module.lessons[currentLesson];
+const progress = `${Math.max(0, Math.min(100, (currentLesson / lessonCount) * 100))}%`;
+const copy = locale === 'es'
+  ? {
+      eyebrow: `Módulo de ${lessonCount} lecciones`,
+      position: `Lección ${currentLesson} de ${lessonCount}`,
+      map: 'Explorar el programa completo',
+      current: 'Actual',
+      available: 'Abrir lección',
+      planned: 'Próximamente',
+      next: 'A continuación',
+    }
+  : {
+      eyebrow: `${lessonCount}-lesson module`,
+      position: `Lesson ${currentLesson} of ${lessonCount}`,
+      map: 'Explore the complete program',
+      current: 'Current',
+      available: 'Open lesson',
+      planned: 'Planned',
+      next: 'Up next',
+    };
+
+const buildHref = (slug: string) => {
+  const prefix = basePath === '/' ? '' : basePath;
+  return `${prefix}/blog/${slug}`.replace(/\/{2,}/g, '/');
+};
+---
+
+<section class="module-shell" aria-labelledby={`module-${module.id}`} data-learning-module>
+  <div class="module-header">
+    <div>
+      <p class="module-eyebrow">{copy.eyebrow}</p>
+      <h2 id={`module-${module.id}`}>{module.title[locale]}</h2>
+      <p class="module-description">{module.description[locale]}</p>
+    </div>
+    <p class="module-position">{copy.position}</p>
+  </div>
+
+  <div
+    class="module-progress"
+    role="progressbar"
+    aria-label={copy.position}
+    aria-valuemin="1"
+    aria-valuemax={lessonCount}
+    aria-valuenow={currentLesson}
+  >
+    <span style={`--module-progress: ${progress}`}></span>
+  </div>
+
+  <ol class="phase-rail" aria-label={locale === 'es' ? 'Fases del módulo' : 'Module phases'}>
+    {module.phases.map((phase, index) => {
+      const phaseNumber = index + 1;
+      const phaseLessons = module.lessons.filter((lesson) => lesson.phase === phaseNumber);
+      const phaseStart = module.lessons.findIndex((lesson) => lesson.phase === phaseNumber) + 1;
+      const phaseEnd = phaseStart + phaseLessons.length - 1;
+      const state = currentLesson > phaseEnd ? 'complete' : currentLesson >= phaseStart ? 'current' : 'future';
+      return (
+        <li data-state={state}>
+          <span class="phase-number" aria-hidden="true">{String(phaseNumber).padStart(2, '0')}</span>
+          <span>{phase.title[locale]}</span>
+        </li>
+      );
+    })}
+  </ol>
+
+  <details class="module-map">
+    <summary>{copy.map}</summary>
+    <ol class="lesson-list">
+      {module.lessons.map((lesson, index) => {
+        const lessonNumber = index + 1;
+        const isCurrent = lessonNumber === currentLesson;
+        const slug = lesson.slug?.[locale];
+        return (
+          <li class:list={{ 'is-current': isCurrent }} aria-current={isCurrent ? 'step' : undefined}>
+            <span class="lesson-number">{String(lessonNumber).padStart(2, '0')}</span>
+            <div class="lesson-copy">
+              <strong>{lesson.title[locale]}</strong>
+              <span>{lesson.description[locale]}</span>
+            </div>
+            <span class="lesson-state">
+              {isCurrent ? copy.current : slug ? <a href={buildHref(slug)}>{copy.available}</a> : copy.planned}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  </details>
+
+  {next && (
+    <div class="module-next">
+      <span>{copy.next}</span>
+      <strong>{String(currentLesson + 1).padStart(2, '0')} · {next.title[locale]}</strong>
+    </div>
+  )}
+</section>
+
+<style>
+  .module-shell {
+    margin: 0 0 2.25rem;
+    padding: clamp(1.15rem, 3vw, 1.75rem);
+    border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--border));
+    border-radius: 18px;
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent 48%),
+      var(--surface-card);
+  }
+
+  .module-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 1.25rem;
+    align-items: start;
+  }
+
+  .module-eyebrow,
+  .module-position,
+  .module-next span {
+    font-family: var(--font-code);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .module-eyebrow {
+    margin: 0 0 0.45rem;
+    color: var(--accent);
+  }
+
+  h2 {
+    margin: 0;
+    font-size: clamp(1.35rem, 3vw, 1.8rem);
+    line-height: 1.15;
+  }
+
+  .module-description {
+    margin: 0.65rem 0 0;
+    max-width: 63ch;
+    color: var(--text-muted);
+  }
+
+  .module-position {
+    margin: 0;
+    padding: 0.45rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--text-base);
+    background: var(--surface-card);
+    white-space: nowrap;
+  }
+
+  .module-progress {
+    height: 4px;
+    margin: 1.25rem 0;
+    overflow: hidden;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--border) 80%, transparent);
+  }
+
+  .module-progress span {
+    display: block;
+    width: var(--module-progress);
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  }
+
+  .phase-rail {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.55rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .phase-rail li {
+    min-width: 0;
+    padding: 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+
+  .phase-rail li[data-state='current'] {
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+    color: var(--text-base);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+  }
+
+  .phase-number {
+    display: block;
+    margin-bottom: 0.28rem;
+    font-family: var(--font-code);
+    color: var(--accent);
+  }
+
+  .module-map {
+    margin-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .module-map summary {
+    min-height: 48px;
+    padding: 0.85rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    cursor: pointer;
+    font-weight: 700;
+    list-style: none;
+  }
+
+  .module-map summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .module-map summary::after {
+    content: "+";
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-left: auto;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--accent);
+    font-family: var(--font-code);
+  }
+
+  .module-map[open] summary::after {
+    content: "−";
+  }
+
+  .lesson-list {
+    display: grid;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0 0 0.5rem;
+    margin: 0;
+  }
+
+  .lesson-list li {
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    align-items: start;
+    padding: 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .lesson-list li.is-current {
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+    background: color-mix(in srgb, var(--accent) 7%, transparent);
+  }
+
+  .lesson-number,
+  .lesson-state {
+    font-family: var(--font-code);
+    font-size: 0.72rem;
+  }
+
+  .lesson-number {
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .lesson-copy {
+    min-width: 0;
+  }
+
+  .lesson-copy strong,
+  .lesson-copy span {
+    display: block;
+  }
+
+  .lesson-copy strong {
+    line-height: 1.35;
+  }
+
+  .lesson-copy span {
+    margin-top: 0.25rem;
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+
+  .lesson-state {
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .module-next {
+    display: flex;
+    gap: 0.65rem;
+    align-items: baseline;
+    margin-top: 0.75rem;
+    padding-top: 0.95rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .module-next span {
+    color: var(--text-muted);
+  }
+
+  .module-next strong {
+    font-size: 0.92rem;
+  }
+
+  @media (max-width: 680px) {
+    .module-header {
+      grid-template-columns: 1fr;
+      gap: 0.85rem;
+    }
+
+    .module-position {
+      justify-self: start;
+    }
+
+    .phase-rail {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .lesson-list li {
+      grid-template-columns: 2rem minmax(0, 1fr);
+    }
+
+    .lesson-state {
+      grid-column: 2;
+    }
+
+    .lesson-list li:not(.is-current) .lesson-copy span {
+      display: none;
+    }
+
+    .module-next {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+  }
+
+</style>

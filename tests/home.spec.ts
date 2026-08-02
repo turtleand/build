@@ -26,8 +26,8 @@ test.describe('Home page', () => {
 		await firstCard.click();
 		await expect(page).toHaveURL(/\/blog\//);
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText(postTitle);
-		await expect(page.getByText('Build note')).toBeVisible();
-		await expect(page.getByLabel('Reading frame')).toContainText('Context');
+		await expect(page.locator('.post-kicker')).toBeVisible();
+		await expect(page.locator('.article-protocol')).toBeVisible();
 
 		const postTagLink = page.locator('.tags a').first();
 		const tagLabel = (await postTagLink.textContent())?.trim() ?? '';
@@ -93,6 +93,6 @@ test.describe('Home page', () => {
 		const archiveTitles = page.locator('[data-post-grid] h3');
 		expect(await archiveTitles.count()).toBe(9);
 		await expect(archiveTitles.filter({ hasText: 'From Refactor Tools to Change Plans' })).toHaveCount(0);
-		await expect(archiveTitles.first()).toHaveText('RSS as a Simple Distribution Protocol');
+		await expect(archiveTitles.first()).toHaveText('Programs, Processes, and Operating-System Execution');
 	});
 });
