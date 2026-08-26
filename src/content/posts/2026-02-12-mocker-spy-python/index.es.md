@@ -4,7 +4,7 @@ title: "Espiar sin reemplazar con mocker.spy"
 description: "Cómo observar funciones reales sin sustituirlas por fakes."
 date: 2026-02-12
 tags: ["python", "mocks"]
-featured: true
+featured: false
 draft: false
 image:
   src: /images/posts/python-logo.svg

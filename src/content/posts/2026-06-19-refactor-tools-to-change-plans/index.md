@@ -3,7 +3,7 @@ title: "From Refactor Tools to Change Plans"
 description: "Why AI agents make the old lesson of IDE refactoring broader: inspect the system before changing it."
 date: 2026-06-19
 tags: ["AI agents", "refactoring", "software engineering", "developer tools"]
-featured: true
+featured: false
 draft: false
 image:
   src: /images/posts/github-mark.svg

@@ -3,7 +3,7 @@ title: "Revisiones de alineación con la intención: cómo usar IA para justific
 description: "Un método práctico de revisión asistida por IA para vincular el código con la intención, detectar complejidad accidental y justificar lo que permanece."
 date: 2026-08-25
 tags: ["artificial intelligence", "code review", "software engineering"]
-featured: false
+featured: true
 draft: false
 locale: es
 translationKey: proof-of-necessity

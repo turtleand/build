@@ -3,7 +3,7 @@ title: "Intent Alignment Reviews: Using AI to Justify Every Line of Code"
 description: "A practical AI-assisted review method for tracing code back to intent, exposing accidental complexity, and justifying what remains."
 date: 2026-08-25
 tags: ["artificial intelligence", "code review", "software engineering"]
-featured: false
+featured: true
 draft: false
 locale: en
 translationKey: proof-of-necessity
