@@ -92,10 +92,10 @@ test.describe('Home page', () => {
 		await page.goto('/');
 		await expect(page.locator('[data-search-count]')).toBeHidden();
 		await expect(page.locator('[data-pagination]')).toBeVisible();
-		await expect(page.getByRole('link', { name: 'Next' })).toBeVisible();
+		await expect(page.locator('[data-pagination]').getByRole('link', { name: 'Next', exact: true })).toBeVisible();
 		const archiveTitles = page.locator('[data-post-grid] h3');
 		expect(await archiveTitles.count()).toBe(9);
 		await expect(archiveTitles.filter({ hasText: 'Intent Alignment Reviews: Using AI to Justify Every Line of Code' })).toHaveCount(0);
-		await expect(archiveTitles.first()).toHaveText('RSS as a Simple Distribution Protocol');
+		await expect(archiveTitles.first()).toHaveText('Python yield, One next() at a Time');
 	});
 });
