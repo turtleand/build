@@ -3,6 +3,7 @@
 > Engineering fundamentals, software craft, and deep technical understanding.
 
 ## Articles
+- [Python yield, One next() at a Time](https://build.turtleand.com/blog/2026-09-06-python-yield-one-next-at-a-time/): Follow a three-number example to see how yield pauses a Python generator, how next() resumes it, and how iteration ends.
 - [Intent Alignment Reviews: Using AI to Justify Every Line of Code](https://build.turtleand.com/blog/2026-08-25-proof-of-necessity/): A practical AI-assisted review method for tracing code back to intent, exposing accidental complexity, and justifying what remains.
 - [RSS as a Simple Distribution Protocol](https://build.turtleand.com/blog/2026-06-30-rss-simple-distribution-protocol/): A short technical model for RSS: one stable feed URL, many item entries, article links, dates, and stable GUIDs so readers can notice new work.
 - [Git Worktrees Are Separate Desks](https://build.turtleand.com/blog/2026-06-25-git-worktrees-separate-desks/): A simple mental model for Git worktrees: separate folders for the same repository history, each with its own files, staging area, and HEAD.
