@@ -6,354 +6,175 @@ interface Props {
   module: LearningModule;
   currentLesson: number;
   locale: Locale;
-  basePath?: string;
+  lessonHrefs: ReadonlyMap<number, string>;
 }
 
-const { module, currentLesson, locale, basePath = '' } = Astro.props as Props;
-const lessonCount = module.lessons.length;
-const next = module.lessons[currentLesson];
-const progress = `${Math.max(0, Math.min(100, (currentLesson / lessonCount) * 100))}%`;
+const { module, currentLesson, locale, lessonHrefs } = Astro.props;
+const count = module.lessons.length;
 const copy = locale === 'es'
   ? {
-      eyebrow: `Módulo de ${lessonCount} lecciones`,
-      position: `Lección ${currentLesson} de ${lessonCount}`,
-      map: 'Explorar el programa completo',
-      current: 'Actual',
-      available: 'Abrir lección',
-      planned: 'Próximamente',
-      next: 'A continuación',
+      position: `Lección ${currentLesson} de ${count}`,
+      map: `Ver las ${count} lecciones`,
+      current: 'Estás aquí',
+      planned: 'Pendiente',
+      previous: 'Lección anterior',
+      next: 'Siguiente lección',
     }
   : {
-      eyebrow: `${lessonCount}-lesson module`,
-      position: `Lesson ${currentLesson} of ${lessonCount}`,
-      map: 'Explore the complete program',
-      current: 'Current',
-      available: 'Open lesson',
+      position: `Lesson ${currentLesson} of ${count}`,
+      map: `See all ${count} lessons`,
+      current: 'You are here',
       planned: 'Planned',
-      next: 'Up next',
+      previous: 'Previous lesson',
+      next: 'Next lesson',
     };
-
-const buildHref = (slug: string) => {
-  const prefix = basePath === '/' ? '' : basePath;
-  return `${prefix}/blog/${slug}`.replace(/\/{2,}/g, '/');
-};
+const moduleId = `module-${module.id}`;
 ---
 
-<section class="module-shell" aria-labelledby={`module-${module.id}`} data-learning-module>
-  <div class="module-header">
-    <div>
-      <p class="module-eyebrow">{copy.eyebrow}</p>
-      <h2 id={`module-${module.id}`}>{module.title[locale]}</h2>
-      <p class="module-description">{module.description[locale]}</p>
-    </div>
-    <p class="module-position">{copy.position}</p>
-  </div>
+<nav id={moduleId} class="module-shell" aria-labelledby={`${moduleId}-title`} data-learning-module>
+  <p class="module-position">{copy.position}</p>
+  <h2 id={`${moduleId}-title`}>{module.title[locale]}</h2>
+  <p class="module-description">{module.description[locale]}</p>
 
-  <div
-    class="module-progress"
-    role="progressbar"
-    aria-label={copy.position}
-    aria-valuemin="1"
-    aria-valuemax={lessonCount}
-    aria-valuenow={currentLesson}
-  >
-    <span style={`--module-progress: ${progress}`}></span>
-  </div>
+  <div class="module-neighbors">
+    {[currentLesson - 1, currentLesson + 1].map((number) => {
+      const lesson = module.lessons[number - 1];
+      if (!lesson) return null;
 
-  <ol class="phase-rail" aria-label={locale === 'es' ? 'Fases del módulo' : 'Module phases'}>
-    {module.phases.map((phase, index) => {
-      const phaseNumber = index + 1;
-      const phaseLessons = module.lessons.filter((lesson) => lesson.phase === phaseNumber);
-      const phaseStart = module.lessons.findIndex((lesson) => lesson.phase === phaseNumber) + 1;
-      const phaseEnd = phaseStart + phaseLessons.length - 1;
-      const state = currentLesson > phaseEnd ? 'complete' : currentLesson >= phaseStart ? 'current' : 'future';
+      const previous = number < currentLesson;
+      const href = lessonHrefs.get(number);
+      const title = `${number}. ${lesson.title[locale]}`;
       return (
-        <li data-state={state}>
-          <span class="phase-number" aria-hidden="true">{String(phaseNumber).padStart(2, '0')}</span>
-          <span>{phase.title[locale]}</span>
-        </li>
+        <p>
+          <span class="neighbor-label">
+            {previous ? copy.previous : copy.next}{!href && ` · ${copy.planned}`}
+          </span>
+          {href ? <a href={href} rel={previous ? 'prev' : 'next'}>{title}</a> : <strong>{title}</strong>}
+        </p>
       );
     })}
-  </ol>
+  </div>
 
   <details class="module-map">
     <summary>{copy.map}</summary>
     <ol class="lesson-list">
       {module.lessons.map((lesson, index) => {
-        const lessonNumber = index + 1;
-        const isCurrent = lessonNumber === currentLesson;
-        const slug = lesson.slug?.[locale];
+        const number = index + 1;
+        const current = number === currentLesson;
+        const href = lessonHrefs.get(number);
         return (
-          <li class:list={{ 'is-current': isCurrent }} aria-current={isCurrent ? 'step' : undefined}>
-            <span class="lesson-number">{String(lessonNumber).padStart(2, '0')}</span>
-            <div class="lesson-copy">
-              <strong>{lesson.title[locale]}</strong>
-              <span>{lesson.description[locale]}</span>
-            </div>
-            <span class="lesson-state">
-              {isCurrent ? copy.current : slug ? <a href={buildHref(slug)}>{copy.available}</a> : copy.planned}
-            </span>
+          <li aria-current={current ? 'step' : undefined}>
+            {href && !current ? <a href={href}>{lesson.title[locale]}</a> : <strong>{lesson.title[locale]}</strong>}
+            {current || !href ? <span class="lesson-state">{current ? copy.current : copy.planned}</span> : null}
+            <p>{lesson.description[locale]}</p>
           </li>
         );
       })}
     </ol>
   </details>
-
-  {next && (
-    <div class="module-next">
-      <span>{copy.next}</span>
-      <strong>{String(currentLesson + 1).padStart(2, '0')} · {next.title[locale]}</strong>
-    </div>
-  )}
-</section>
+</nav>
 
 <style>
   .module-shell {
-    margin: 0 0 2.25rem;
-    padding: clamp(1.15rem, 3vw, 1.75rem);
-    border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--border));
-    border-radius: 18px;
-    background:
-      linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent 48%),
-      var(--surface-card);
+    margin: 2.25rem 0 0;
+    padding: clamp(1.1rem, 3vw, 1.75rem);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface-card);
+    scroll-margin-top: 5rem;
   }
 
-  .module-header {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 1.25rem;
-    align-items: start;
-  }
-
-  .module-eyebrow,
   .module-position,
-  .module-next span {
+  .neighbor-label,
+  .lesson-state {
     font-family: var(--font-code);
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    font-size: 0.78rem;
   }
 
-  .module-eyebrow {
-    margin: 0 0 0.45rem;
+  .module-position {
+    margin: 0 0 0.4rem;
     color: var(--accent);
+    font-weight: 700;
   }
 
   h2 {
     margin: 0;
     font-size: clamp(1.35rem, 3vw, 1.8rem);
-    line-height: 1.15;
+    line-height: 1.2;
   }
 
   .module-description {
-    margin: 0.65rem 0 0;
+    margin: 0.5rem 0 1rem;
     max-width: 63ch;
     color: var(--text-muted);
   }
 
-  .module-position {
-    margin: 0;
-    padding: 0.45rem 0.7rem;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    color: var(--text-base);
-    background: var(--surface-card);
-    white-space: nowrap;
-  }
-
-  .module-progress {
-    height: 4px;
-    margin: 1.25rem 0;
-    overflow: hidden;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--border) 80%, transparent);
-  }
-
-  .module-progress span {
-    display: block;
-    width: var(--module-progress);
-    height: 100%;
-    border-radius: inherit;
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  }
-
-  .phase-rail {
+  .module-neighbors {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.55rem;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .phase-rail li {
-    min-width: 0;
-    padding: 0.7rem;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    color: var(--text-muted);
-    font-size: 0.78rem;
-    line-height: 1.35;
-  }
-
-  .phase-rail li[data-state='current'] {
-    border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
-    color: var(--text-base);
-    background: color-mix(in srgb, var(--accent) 8%, transparent);
-  }
-
-  .phase-number {
-    display: block;
-    margin-bottom: 0.28rem;
-    font-family: var(--font-code);
-    color: var(--accent);
-  }
-
-  .module-map {
-    margin-top: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    gap: 0.75rem 1.5rem;
+    padding: 1rem 0;
     border-top: 1px solid var(--border);
   }
 
-  .module-map summary {
-    min-height: 48px;
-    padding: 0.85rem 0;
-    display: flex;
-    align-items: center;
-    gap: 0.55rem;
-    cursor: pointer;
-    font-weight: 700;
-    list-style: none;
+  .module-neighbors p {
+    margin: 0;
   }
 
-  .module-map summary::-webkit-details-marker {
-    display: none;
+  .neighbor-label {
+    display: block;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
   }
 
-  .module-map summary::after {
-    content: "+";
-    display: grid;
-    place-items: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    margin-left: auto;
-    border: 1px solid var(--border);
-    border-radius: 999px;
+  a {
     color: var(--accent);
-    font-family: var(--font-code);
+    font-weight: 650;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
   }
 
-  .module-map[open] summary::after {
-    content: "−";
+  summary {
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--border);
+    cursor: pointer;
+    font-weight: 650;
   }
 
   .lesson-list {
-    display: grid;
-    gap: 0.5rem;
-    list-style: none;
-    padding: 0 0 0.5rem;
     margin: 0;
+    padding-inline-start: 2.1rem;
+    list-style: decimal-leading-zero;
   }
 
   .lesson-list li {
-    display: grid;
-    grid-template-columns: 2.25rem minmax(0, 1fr) auto;
-    gap: 0.75rem;
-    align-items: start;
-    padding: 0.8rem;
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    padding: 0.7rem 0.4rem;
   }
 
-  .lesson-list li.is-current {
-    border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
-    background: color-mix(in srgb, var(--accent) 7%, transparent);
+  .lesson-list li + li {
+    border-top: 1px solid var(--border);
   }
 
-  .lesson-number,
-  .lesson-state {
+  .lesson-list li::marker {
     font-family: var(--font-code);
-    font-size: 0.72rem;
+    color: var(--text-muted);
   }
 
-  .lesson-number {
+  .lesson-list li[aria-current='step']::marker {
     color: var(--accent);
     font-weight: 700;
   }
 
-  .lesson-copy {
-    min-width: 0;
-  }
-
-  .lesson-copy strong,
-  .lesson-copy span {
-    display: block;
-  }
-
-  .lesson-copy strong {
-    line-height: 1.35;
-  }
-
-  .lesson-copy span {
-    margin-top: 0.25rem;
+  .lesson-list p {
+    margin: 0.2rem 0 0;
     color: var(--text-muted);
-    font-size: 0.88rem;
-    line-height: 1.45;
+    font-size: 0.92rem;
+    line-height: 1.5;
   }
 
   .lesson-state {
-    color: var(--text-muted);
-    white-space: nowrap;
-  }
-
-  .module-next {
-    display: flex;
-    gap: 0.65rem;
-    align-items: baseline;
-    margin-top: 0.75rem;
-    padding-top: 0.95rem;
-    border-top: 1px solid var(--border);
-  }
-
-  .module-next span {
+    display: inline-block;
+    margin-inline-start: 0.5rem;
     color: var(--text-muted);
   }
-
-  .module-next strong {
-    font-size: 0.92rem;
-  }
-
-  @media (max-width: 680px) {
-    .module-header {
-      grid-template-columns: 1fr;
-      gap: 0.85rem;
-    }
-
-    .module-position {
-      justify-self: start;
-    }
-
-    .phase-rail {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .lesson-list li {
-      grid-template-columns: 2rem minmax(0, 1fr);
-    }
-
-    .lesson-state {
-      grid-column: 2;
-    }
-
-    .lesson-list li:not(.is-current) .lesson-copy span {
-      display: none;
-    }
-
-    .module-next {
-      align-items: flex-start;
-      flex-direction: column;
-      gap: 0.3rem;
-    }
-  }
-
 </style>

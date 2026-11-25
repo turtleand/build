@@ -1,5 +1,6 @@
 import { glob } from 'astro/loaders';
 import { defineCollection, z } from 'astro:content';
+import { getLearningModule } from './data/learning-modules';
 
 const posts = defineCollection({
   type: 'content_layer',
@@ -28,6 +29,9 @@ const posts = defineCollection({
       .object({
         id: z.string(),
         lesson: z.number().int().positive(),
+      })
+      .refine(({ id, lesson }) => Boolean(getLearningModule(id)?.lessons[lesson - 1]), {
+        message: 'Choose an existing learning module and a lesson number in its roadmap.',
       })
       .optional(),
   }),

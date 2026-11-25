@@ -4,7 +4,7 @@ title: "Spying Without Replacing with mocker.spy"
 description: "How to watch real functions without faking them."
 date: 2026-02-12
 tags: ["python", "mocks"]
-featured: true
+featured: false
 draft: false
 image:
   src: /images/posts/python-logo.svg

@@ -2,170 +2,111 @@ import type { Locale } from '../utils/i18n';
 
 type LocalizedText = Record<Locale, string>;
 
-type LearningModuleLesson = {
-  title: LocalizedText;
-  description: LocalizedText;
-  phase: number;
-  slug?: Partial<Record<Locale, string>>;
-};
-
-type LearningModulePhase = {
-  title: LocalizedText;
-};
-
 export type LearningModule = {
   id: string;
   title: LocalizedText;
   description: LocalizedText;
-  frame: Record<Locale, string[]>;
-  phases: LearningModulePhase[];
-  lessons: LearningModuleLesson[];
+  lessons: { title: LocalizedText; description: LocalizedText }[];
 };
 
-const learningModules: Record<string, LearningModule> = {
-  'programs-to-http': {
+const learningModules: LearningModule[] = [
+  {
     id: 'programs-to-http',
     title: {
-      en: 'From program to HTTP',
-      es: 'Del programa a HTTP',
+      en: 'Build a web server from scratch',
+      es: 'Construye un servidor web desde cero',
     },
     description: {
-      en: 'Build one continuous model of how a server starts, connects, exchanges bytes, and returns an HTTP response.',
-      es: 'Construye un modelo continuo de cómo un servidor arranca, se conecta, intercambia bytes y devuelve una respuesta HTTP.',
+      en: 'Start with a Python process that answers PING. Extend it until two clients can request pages from it over HTTP.',
+      es: 'Empieza con un proceso de Python que responde a PING. Amplíalo hasta que dos clientes puedan pedirle páginas por HTTP.',
     },
-    frame: {
-      en: ['Program', 'Process', 'Kernel'],
-      es: ['Programa', 'Proceso', 'Kernel'],
-    },
-    phases: [
-      {
-        title: {
-          en: 'Execution foundations',
-          es: 'Fundamentos de ejecución',
-        },
-      },
-      {
-        title: {
-          en: 'Connections',
-          es: 'Conexiones',
-        },
-      },
-      {
-        title: {
-          en: 'Data flow',
-          es: 'Flujo de datos',
-        },
-      },
-      {
-        title: {
-          en: 'Application protocol',
-          es: 'Protocolo de aplicación',
-        },
-      },
-    ],
     lessons: [
       {
-        title: { en: 'Programs, processes, and the OS', es: 'Programas, procesos y el sistema operativo' },
+        title: { en: 'Start the server process', es: 'Arranca el proceso del servidor' },
         description: {
-          en: 'How static instructions become a running server, and why the OS sits between programs and hardware.',
-          es: 'Cómo las instrucciones estáticas se convierten en un servidor en ejecución y por qué el sistema operativo media entre los programas y el hardware.',
-        },
-        phase: 1,
-        slug: {
-          en: '2026-08-02-programs-processes-operating-system-execution',
-          es: '2026-08-02-programas-procesos-ejecucion-sistema-operativo',
+          en: 'Run server.py, find its process ID and send it a PING from the terminal.',
+          es: 'Ejecuta server.py, identifica su proceso y envíale un PING desde la terminal.',
         },
       },
       {
-        title: { en: 'Inter-process communication', es: 'Comunicación entre procesos' },
+        title: { en: 'Connect a client with pipes', es: 'Conecta un cliente mediante tuberías' },
         description: {
-          en: 'Why isolated processes need controlled ways to exchange information.',
-          es: 'Por qué los procesos aislados necesitan formas controladas de intercambiar información.',
+          en: 'Write a client that launches the same server, writes PING to its standard input and reads PONG back.',
+          es: 'Escribe un cliente que arranque el mismo servidor, envíe PING por su entrada estándar y lea PONG como respuesta.',
         },
-        phase: 1,
       },
       {
-        title: { en: 'Unix sockets and network sockets', es: 'Sockets Unix y sockets de red' },
+        title: { en: 'Exchange bytes over a socket pair', es: 'Intercambia bytes entre dos sockets' },
         description: {
-          en: 'The common socket abstraction, used locally or across networks.',
-          es: 'La abstracción común de socket, utilizada localmente o a través de redes.',
+          en: 'Give each side a connected socket and carry the same exchange over that pair.',
+          es: 'Asigna a cada extremo un socket conectado y repite el intercambio a través de ese par.',
         },
-        phase: 2,
       },
       {
-        title: { en: 'IP addresses and ports', es: 'Direcciones IP y puertos' },
+        title: { en: 'Give the server an address', es: 'Asigna una dirección al servidor' },
         description: {
-          en: 'How traffic identifies both a machine and a particular service.',
-          es: 'Cómo el tráfico identifica tanto una máquina como un servicio concreto.',
+          en: 'Bind a TCP socket to the loopback interface and print the port the OS assigned.',
+          es: 'Vincula un socket TCP a la interfaz local de loopback y muestra el puerto que le asignó el sistema.',
         },
-        phase: 2,
       },
       {
-        title: { en: 'TCP connections and client-server roles', es: 'Conexiones TCP y roles de cliente-servidor' },
+        title: { en: 'Answer a client over TCP', es: 'Responde a un cliente por TCP' },
         description: {
-          en: 'What a connection represents and how client and server responsibilities differ.',
-          es: 'Qué representa una conexión y cómo se diferencian las responsabilidades del cliente y del servidor.',
+          en: 'Listen on that port, connect from a second terminal and send PONG through the accepted socket.',
+          es: 'Escucha en ese puerto, conéctate desde otra terminal y envía PONG por el socket de la conexión aceptada.',
         },
-        phase: 2,
       },
       {
-        title: { en: 'Listening and accepting', es: 'Escuchar y aceptar' },
+        title: { en: 'Keep listening between clients', es: 'Sigue escuchando entre conexiones' },
         description: {
-          en: 'How a server advertises availability and receives individual connections.',
-          es: 'Cómo un servidor anuncia su disponibilidad y recibe conexiones individuales.',
+          en: 'Close the first connection and accept a second one on the original listening socket.',
+          es: 'Cierra la primera conexión y acepta una segunda con el mismo socket de escucha.',
         },
-        phase: 2,
       },
       {
-        title: { en: 'Reading and writing bytes', es: 'Leer y escribir bytes' },
+        title: { en: 'Read whole messages from a byte stream', es: 'Lee mensajes completos de un flujo de bytes' },
         description: {
-          en: 'How applications exchange byte streams through sockets and OS-managed buffers.',
-          es: 'Cómo las aplicaciones intercambian flujos de bytes mediante sockets y búferes gestionados por el sistema operativo.',
+          en: 'Keep a buffer until a newline arrives. Try splitting PING across two writes and sending two lines together.',
+          es: 'Acumula bytes hasta recibir un salto de línea. Divide PING en dos escrituras y prueba a enviar dos líneas juntas.',
         },
-        phase: 3,
       },
       {
-        title: { en: 'Blocking I/O', es: 'E/S bloqueante' },
+        title: { en: 'Set a deadline for an idle client', es: 'Limita la espera de un cliente inactivo' },
         description: {
-          en: 'Why a process may wait while reading, writing, or accepting connections.',
-          es: 'Por qué un proceso puede esperar mientras lee, escribe o acepta conexiones.',
+          en: 'Leave a client connected mid-line, observe the blocked read and set a timeout so the server can accept another client.',
+          es: 'Deja una línea a medias, observa cómo se bloquea la lectura y fija un tiempo de espera para que el servidor pueda atender a otro cliente.',
         },
-        phase: 3,
       },
       {
-        title: { en: 'Concurrency and event loops', es: 'Concurrencia y bucles de eventos' },
+        title: { en: 'Serve two clients at once', es: 'Atiende a dos clientes a la vez' },
         description: {
-          en: 'How servers make progress on multiple connections without confusing their state.',
-          es: 'Cómo los servidores avanzan en varias conexiones sin confundir su estado.',
+          en: 'Use a selector and a buffer per connection so one client gets PONG while the other is still typing.',
+          es: 'Usa un selector y un búfer por conexión para que un cliente reciba PONG mientras el otro sigue escribiendo.',
         },
-        phase: 3,
       },
       {
-        title: { en: 'HTTP requests and responses', es: 'Solicitudes y respuestas HTTP' },
+        title: { en: 'Return the first HTTP response', es: 'Devuelve la primera respuesta HTTP' },
         description: {
-          en: 'How structured HTTP messages are encoded into ordinary bytes.',
-          es: 'Cómo los mensajes HTTP estructurados se codifican en bytes ordinarios.',
+          en: 'Read a GET request and its headers, then send a status line, a content length and a short page for the browser.',
+          es: 'Lee una petición GET y sus cabeceras. Envía al navegador una línea de estado, la longitud del contenido y una página breve.',
         },
-        phase: 4,
       },
       {
-        title: { en: 'Keep-alive and frameworks', es: 'Keep-alive y frameworks' },
+        title: { en: 'Route a second request on the same connection', es: 'Atiende otra petición en la misma conexión' },
         description: {
-          en: 'How connections can carry multiple exchanges and how frameworks hide lower layers.',
-          es: 'Cómo las conexiones pueden transportar varios intercambios y cómo los frameworks ocultan las capas inferiores.',
+          en: 'Serve the home page and a 404 for an unknown path. Request both in sequence over one TCP connection.',
+          es: 'Sirve la página de inicio y devuelve un 404 para una ruta desconocida. Pide ambas rutas por la misma conexión TCP.',
         },
-        phase: 4,
       },
       {
-        title: { en: 'The complete request lifecycle', es: 'El ciclo de vida completo de una solicitud' },
+        title: { en: 'Trace and test the complete request', es: 'Sigue y verifica la petición de principio a fin' },
         description: {
-          en: 'Following one request from the client, through both operating systems and application code, then back.',
-          es: 'Seguir una solicitud desde el cliente, a través de ambos sistemas operativos y el código de aplicación, y de vuelta.',
+          en: 'Trace a request from accept to response and write a repeatable check for the status, headers and body with two connected clients.',
+          es: 'Sigue una petición desde que se acepta la conexión hasta la respuesta y comprueba el estado, las cabeceras y el cuerpo en una prueba con dos clientes conectados.',
         },
-        phase: 4,
       },
     ],
   },
-};
+];
 
-export const getLearningModule = (id: string) => learningModules[id];
+export const getLearningModule = (id: string) => learningModules.find((module) => module.id === id);

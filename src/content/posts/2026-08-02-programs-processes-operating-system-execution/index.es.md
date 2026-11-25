@@ -1,8 +1,8 @@
 ---
-title: "Programas, procesos y ejecución del sistema operativo"
-description: "Cómo las instrucciones estáticas se convierten en un servidor en ejecución, qué contiene un proceso y dónde media el sistema operativo entre el código y el hardware."
+title: "El primer proceso de nuestro servidor web en Python"
+description: "En la primera de 12 entregas para construir un servidor web, escribe un proceso en Python que responda a PING y obsérvalo mientras espera la siguiente solicitud."
 date: 2026-08-02
-tags: ["sistemas operativos", "servidores", "ingeniería de software"]
+tags: ["sistemas operativos", "servidores", "ingeniería de software", "python"]
 featured: false
 draft: false
 locale: es
@@ -13,154 +13,85 @@ learningModule:
   lesson: 1
 ---
 
-Un servidor comienza como instrucciones almacenadas en algún lugar. Esas instrucciones no hacen nada hasta que un sistema en ejecución las carga, les asigna recursos y las programa en un procesador.
+Al final de esta serie podrás pedirle una página a nuestro servidor web en Python desde un navegador. Hoy vas a hacer de cliente. Escribirás una solicitud, recibirás la respuesta y dejarás al servidor esperando mientras buscas su proceso desde otra terminal.
 
-El modelo central es:
+Con eso ya tendremos una pieza que aprovecharemos en las próximas entregas. Incluso con un teclado en un extremo, el servidor tiene que recibir una solicitud, decidir qué responder y esperar la siguiente. Más adelante llevaremos esa conversación a un socket y usaremos la sintaxis de HTTP.
+
+## Escribe el primer bucle de solicitudes
+
+Necesitas Python 3 y una terminal en Linux o macOS. En un directorio vacío, crea un archivo llamado `server.py` con este código.
+
+```python
+import os
+import sys
+
+
+def reply(request):
+    if request == "PING":
+        return "PONG"
+    return "ERR unknown request"
+
+
+def main():
+    print(f"server pid={os.getpid()}", file=sys.stderr)
+    for line in sys.stdin:
+        request = line.rstrip("\n")
+        print(reply(request), flush=True)
+
+
+if __name__ == "__main__":
+    main()
+```
+
+Nuestro formato tiene una regla sencilla. Cada solicitud termina con un salto de línea. El bucle lo quita antes de pasar la solicitud a `reply`. Al dejar esa regla fuera de la función, podemos probar qué responde el servidor sin preocuparnos por cómo le llegó la solicitud.
+
+El programa escribe el PID, su identificador de proceso, en la salida de error estándar. Las respuestas van a la salida estándar. Ambas suelen aparecer en la misma terminal, pero un cliente que lea la salida estándar debe recibir una sola respuesta por solicitud. Con `flush=True`, el cliente puede leer cada respuesta en cuanto se escribe, incluso cuando la salida va por una tubería.
+
+## Haz de cliente
+
+Desde el directorio que contiene el archivo, ejecuta este comando.
+
+```bash
+python3 server.py
+```
+
+Verás una línea parecida a `server pid=4172`. Guarda tu número para el siguiente paso. Escribe `PING` y pulsa Intro, prueba con `HELLO` y vuelve a enviar `PING`. Como la terminal muestra lo que escribes, verás los dos lados de la conversación.
 
 ```text
-programa almacenado
-        ↓ inicio
-el sistema operativo crea un proceso
-        ↓ planificación
-la CPU ejecuta las instrucciones del proceso
-        ↓ llamadas al sistema
-el sistema operativo realiza trabajo protegido
+PING
+PONG
+HELLO
+ERR unknown request
+PING
+PONG
 ```
 
-Esta es la lección 1 de un recorrido de 12 lecciones desde la ejecución de un programa hasta el ciclo de vida completo de una solicitud HTTP. Los sockets, las conexiones, los bytes y HTTP pertenecen a un proceso en ejecución que pide al sistema operativo que gestione recursos en su nombre.
+Deja la terminal abierta después del segundo `PONG`. El mismo programa en ejecución ha contestado tres solicitudes. ¿Qué hace entre una respuesta y la siguiente?
 
-## Un programa no es un proceso
+## Busca el proceso mientras espera
 
-Un **programa** es un conjunto de instrucciones en una forma almacenada. Puede ser un ejecutable compilado, un script, bytecode o una colección de archivos cargados por un entorno de ejecución.
-
-Un **proceso** es una instancia de ejecución gestionada por el sistema operativo.
-
-La distinción importa porque un programa puede producir varios procesos. Si inicias el mismo programa de servidor tres veces, las instrucciones almacenadas pueden ser idénticas, pero el sistema operativo crea tres contextos de ejecución separados.
-
-Cada proceso normalmente tiene su propio:
-
-- Espacio de direcciones virtual para código, datos, pilas y heaps
-- Uno o más hilos que pueden planificarse
-- Identificador de proceso, normalmente llamado PID
-- Tabla de recursos abiertos, representados en sistemas tipo Unix mediante descriptores de archivo
-- Identidad de seguridad, límites, entorno y estado de trabajo actual
-
-Por tanto, un proceso es más que código en movimiento. Es código más el contexto gestionado necesario para ejecutarlo.
-
-## Qué sucede cuando se inicia un programa
-
-La ruta exacta depende de la plataforma y del entorno de ejecución, pero la secuencia duradera es:
-
-1. Un usuario, shell, gestor de servicios u otro proceso solicita un inicio.
-2. El sistema operativo crea un nuevo contexto de proceso.
-3. Establece memoria virtual y carga el ejecutable o intérprete.
-4. Prepara la pila inicial, los argumentos, el entorno y los recursos heredados.
-5. Crea el primer hilo y lo deja listo para ejecutarse.
-6. El planificador asigna tiempo de CPU al hilo.
-7. La CPU empieza a ejecutar instrucciones en el punto de entrada del programa.
-
-En un sistema tipo Unix, la creación de procesos y la carga de programas suelen explicarse mediante operaciones como `fork()` y `execve()`. El mecanismo exacto es menos importante aquí que el límite: el código de aplicación no se asigna memoria física, no elige tiempo de CPU sin restricciones ni toma control directo de los dispositivos. El sistema operativo establece y aplica el contexto de ejecución.
-
-## Qué media el sistema operativo
-
-El sistema operativo ofrece abstracciones controladas sobre hardware compartido.
-
-| Necesidad de la aplicación | Abstracción del sistema operativo |
-|---|---|
-| Tiempo en un procesador | Hilos, planificación, prioridades |
-| Memoria | Espacios de direcciones virtuales, páginas, protección |
-| Datos almacenados | Archivos y directorios |
-| Comunicación de red | Sockets y pilas de red |
-| Acceso a dispositivos | Controladores e interfaces de dispositivos |
-| Aislamiento y autoridad | Procesos, usuarios, permisos, límites |
-
-Esta mediación cumple dos objetivos.
-
-Primero, hace utilizable el hardware. Un servidor no necesita conocer el protocolo eléctrico de un adaptador de red. Escribe bytes mediante una interfaz de socket, y el sistema operativo junto con el controlador gestionan las capas inferiores.
-
-Segundo, protege el sistema. Un proceso no debería poder sobrescribir la memoria de otro proceso ni controlar un dispositivo sin permiso.
-
-## El sistema operativo no ejecuta cada instrucción por el programa
-
-Decir que el sistema operativo está entre los programas y el hardware es útil, pero puede ser engañoso si se interpreta literalmente.
-
-La mayoría de las instrucciones normales de una aplicación se ejecutan directamente en la CPU en **modo usuario**. El sistema operativo no interpreta cada suma, comparación o llamada a función.
-
-El kernel interviene cuando se necesita coordinación protegida, por ejemplo:
-
-- Un proceso hace una **llamada al sistema** para solicitar un servicio del sistema operativo
-- La CPU recibe una interrupción de un dispositivo o temporizador
-- Una instrucción provoca un fallo, como acceder a una página de memoria no asignada
-- El planificador pausa un hilo ejecutable y selecciona otro
-
-El modelo más preciso es:
-
-> El código de aplicación se ejecuta directamente dentro de los límites establecidos por el sistema operativo. Entra en el kernel cuando necesita recursos protegidos o coordinación de todo el sistema.
-
-## Cómo esto se convierte en un servidor en ejecución
-
-Un servidor no es un tipo especial de programa en reposo. Se convierte en servidor por lo que hace su proceso después del inicio.
-
-Una secuencia simplificada es:
-
-```text
-cargar programa
-  → crear proceso
-  → inicializar el entorno y el estado de la aplicación
-  → pedir un socket al sistema operativo
-  → pedir al sistema operativo que lo asocie con una dirección
-  → pedir al sistema operativo que escuche
-  → esperar y gestionar conexiones
-```
-
-Los primeros tres pasos explican la ejecución. Los pasos restantes introducen la ruta de comunicación que se desarrolla en las siguientes lecciones.
-
-El proceso posee el estado de la aplicación, como las reglas de enrutamiento o los manejadores de solicitudes. El sistema operativo posee mecanismos protegidos, como la planificación, los mapas de memoria, el estado de los sockets y los búferes de red. Un framework puede ocultar muchas llamadas, pero no puede eliminar este límite.
-
-## Un pequeño ejercicio de observación
-
-Python incluye un servidor HTTP sencillo que sirve para observar un proceso. Es para aprendizaje local, no para producción.
-
-Inícialo en una terminal:
+Abre una segunda terminal. Sustituye `4172` en este comando por el PID que imprimió tu servidor.
 
 ```bash
-python3 -m http.server 8000
+ps -p 4172 -o pid,ppid,stat,command
 ```
 
-En otra terminal, encuentra el proceso:
+Busca tu PID y `server.py` en la misma fila. `PPID` identifica el proceso padre, normalmente el intérprete de comandos desde el que iniciaste Python. En la columna `STAT` suele aparecer una `S` de *sleeping* (dormido). El intérprete de Python ha llegado a la siguiente lectura de la entrada estándar. Hasta que lleguen datos, el núcleo del sistema operativo puede dejar ese hilo dormido y asignar la CPU a otras tareas. Vuelve a la primera terminal y envía otro `PING`. El hilo puede volver a ejecutarse y producir otro `PONG`.
 
-```bash
-pgrep -af "python3 -m http.server 8000"
-```
+Aquí hay dos cosas con tiempos de vida distintos. El código de `server.py` permanece en el disco. Al ejecutar `python3 server.py` se inicia un **proceso** en el que el intérprete ejecuta esas instrucciones. Si inicias una segunda copia mientras la primera espera, verás que tienen distintos PID. Cada una tiene su propia memoria y avanza por el bucle a su ritmo.
 
-Usa el PID de esa salida para inspeccionar su estado gestionado:
+También se puede ver qué papel cumple el sistema operativo. La CPU ejecuta las instrucciones del intérprete en modo usuario cuando Python compara la solicitud con `"PING"`. Cuando necesita más datos, el intérprete puede pedirle al núcleo que lea a través de un **descriptor de archivo**, un número pequeño que identifica un recurso abierto en ese proceso. En un programa iniciado desde esta terminal, el descriptor 0 lee de la terminal. En la próxima entrega, el mismo descriptor leerá de una tubería.
 
-```bash
-ps -o pid,ppid,stat,comm,args -p <PID>
-ls -l /proc/<PID>/fd
-```
+## Cierra la sesión
 
-En Linux, `/proc/<PID>/fd` expone enlaces que representan los descriptores de archivo abiertos del proceso. Normalmente verás la entrada, salida y error estándares, además de un socket. El programa pidió el socket, pero el kernel mantiene el recurso subyacente.
+En la terminal del servidor, pulsa Ctrl+D al comienzo de una línea vacía. Así, la operación de lectura devuelve un fin de archivo. El bucle termina, Python sale y reaparece el indicador de la terminal. Si iniciaste una segunda copia, ciérrala de la misma forma.
 
-Detén el servidor con `Ctrl+C`. Esa señal llega al proceso, el entorno de ejecución sale y el sistema operativo recupera sus recursos.
+Repite el comando `ps` con el primer PID. Su fila debería haber desaparecido. El sistema operativo ha recuperado la memoria del proceso y ha cerrado sus descriptores. El archivo sigue en el disco, listo para otra ejecución.
 
-## Tres distinciones que debes conservar
-
-1. **Programa frente a proceso:** las instrucciones almacenadas no son lo mismo que una instancia de ejecución activa.
-2. **Espacio de usuario frente a espacio del kernel:** las instrucciones de la aplicación suelen ejecutarse directamente, mientras que las operaciones protegidas entran en el kernel.
-3. **Estado de la aplicación frente a estado del sistema operativo:** el servidor controla su propia lógica, mientras que el sistema operativo controla los recursos compartidos y el aislamiento.
-
-Estas distinciones evitan un error común: imaginar que un framework, un entorno de ejecución, un proceso, un sistema operativo y una CPU son una sola máquina indivisible. Son capas que cooperan con responsabilidades diferentes.
-
-## A continuación: por qué los procesos necesitan rutas de comunicación
-
-El aislamiento de procesos es valioso porque limita las interferencias accidentales y no autorizadas. Ese aislamiento también crea el siguiente problema: los procesos separados no pueden acceder a la memoria de otros cuando quieran.
-
-La próxima lección introduce la comunicación entre procesos, los mecanismos controlados que permiten a los procesos aislados intercambiar información.
+Conserva `server.py`. En la próxima entrega, otro programa en Python enviará `PING` por una tubería y leerá `PONG` como respuesta. Cambiará quién escribe la siguiente línea. Podremos reutilizar la función `reply` tal como está.
 
 ## Fuentes
 
-- Página del manual de Linux para [`execve(2)`](https://man7.org/linux/man-pages/man2/execve.2.html)
-- Vista general del manual de Linux para [`proc(5)`](https://man7.org/linux/man-pages/man5/proc.5.html)
-- Vista general del manual de Linux para [`sched(7)`](https://man7.org/linux/man-pages/man7/sched.7.html)
-- *Operating Systems: Three Easy Pieces*, [capítulo sobre procesos](https://pages.cs.wisc.edu/~remzi/OSTEP/cpu-intro.pdf)
+- Documentación de Python sobre la [entrada y las salidas estándar](https://docs.python.org/es/3/library/sys.html#sys.stdin)
+- Manual de Linux sobre la [lectura desde un descriptor de archivo](https://man7.org/linux/man-pages/man2/read.2.html)
+- *Operating Systems: Three Easy Pieces*, [capítulo sobre la abstracción del proceso](https://pages.cs.wisc.edu/~remzi/OSTEP/cpu-intro.pdf)

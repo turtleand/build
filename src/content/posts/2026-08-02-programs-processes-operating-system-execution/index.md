@@ -1,8 +1,8 @@
 ---
-title: "Programs, Processes, and Operating-System Execution"
-description: "How static instructions become a running server, what a process contains, and where the operating system mediates between application code and hardware."
+title: "The First Process of Our Python Web Server"
+description: "In the first of 12 lessons on building a web server, write a Python process that answers PING and inspect it while it waits for the next request."
 date: 2026-08-02
-tags: ["operating systems", "servers", "software engineering"]
+tags: ["operating systems", "servers", "software engineering", "python"]
 featured: false
 draft: false
 locale: en
@@ -13,154 +13,85 @@ learningModule:
   lesson: 1
 ---
 
-A server begins as instructions stored somewhere. Those instructions do nothing until a running system loads them, gives them resources, and schedules them on a processor.
+By the end of this series, a browser will be able to ask our Python web server for a page. Today you’ll play the part of the client. You’ll type a request, get a reply, then leave the server waiting while you find its process in a second terminal.
 
-The core model is:
+This gives us a piece we can build on. Receiving a request, deciding what to return, and waiting for another request already make sense with a keyboard on one end. Later we’ll move that conversation onto a socket and give it HTTP syntax.
+
+## Write the first request loop
+
+You’ll need Python 3 and a terminal on Linux or macOS. In an empty directory, create a file named `server.py` with this code.
+
+```python
+import os
+import sys
+
+
+def reply(request):
+    if request == "PING":
+        return "PONG"
+    return "ERR unknown request"
+
+
+def main():
+    print(f"server pid={os.getpid()}", file=sys.stderr)
+    for line in sys.stdin:
+        request = line.rstrip("\n")
+        print(reply(request), flush=True)
+
+
+if __name__ == "__main__":
+    main()
+```
+
+We’ve made one decision about the format of a request. It ends at a newline. The loop removes that newline before it passes the request to `reply`. Keeping this rule outside `reply` means we can test what the server says independently of how the request gets there.
+
+The program writes the PID, its process identifier, to standard error. It writes replies to standard output. Both streams normally appear in the same terminal, but a client that reads standard output should receive just one reply per request. `flush=True` makes each reply available to that client as soon as we print it, even when the output goes through a pipe.
+
+## Be the first client
+
+From the directory containing the file, run this command.
+
+```bash
+python3 server.py
+```
+
+The first line will say something like `server pid=4172`. Keep your own number for the next step. Type `PING` and press Return, try `HELLO`, then send `PING` again. Your terminal echoes what you type, so you’ll see both sides of the exchange.
 
 ```text
-program on storage
-        ↓ launch
-operating system creates a process
-        ↓ schedule
-CPU executes the process's instructions
-        ↓ system calls
-operating system performs protected work
+PING
+PONG
+HELLO
+ERR unknown request
+PING
+PONG
 ```
 
-This is lesson 1 of a 12-lesson path from program execution to the complete HTTP request lifecycle. Sockets, connections, bytes, and HTTP all belong to a running process that asks the operating system to manage resources on its behalf.
+Leave this terminal open after the second `PONG`. The same running program has answered three requests. What is it doing between replies?
 
-## A program is not a process
+## Find the process while it waits
 
-A **program** is a set of instructions in a stored form. It might be a compiled executable, a script, bytecode, or a collection of files loaded by a runtime.
-
-A **process** is an operating-system-managed instance of execution.
-
-The distinction matters because one program can produce several processes. If you start the same server program three times, the stored instructions may be identical, but the operating system creates three separate execution contexts.
-
-Each process normally has its own:
-
-- Virtual address space for code, data, stacks, and heaps
-- One or more threads that can be scheduled
-- Process identifier, often called a PID
-- Table of open resources, represented on Unix-like systems by file descriptors
-- Security identity, limits, environment, and current working state
-
-A process is therefore more than code currently moving. It is code plus the managed context required to run it.
-
-## What happens when a program starts
-
-The exact path depends on the platform and runtime, but the durable sequence is:
-
-1. A user, shell, service manager, or another process requests a launch.
-2. The operating system creates a new process context.
-3. It establishes virtual memory and loads the executable or interpreter.
-4. It prepares the initial stack, arguments, environment, and inherited resources.
-5. It creates the first thread and makes that thread eligible to run.
-6. The scheduler gives the thread time on a CPU.
-7. The CPU begins executing instructions at the program's entry point.
-
-On a Unix-like system, process creation and program loading are often discussed through operations such as `fork()` and `execve()`. The exact mechanism is less important here than the boundary: application code does not assign itself physical memory, choose unrestricted CPU time, or directly take ownership of devices. The operating system establishes and enforces the execution context.
-
-## What the operating system mediates
-
-The operating system provides controlled abstractions over shared hardware.
-
-| Application needs | Operating-system abstraction |
-|---|---|
-| Time on a processor | Threads, scheduling, priorities |
-| Memory | Virtual address spaces, pages, protection |
-| Stored data | Files and directories |
-| Network communication | Sockets and network stacks |
-| Device access | Drivers and device interfaces |
-| Isolation and authority | Processes, users, permissions, limits |
-
-This mediation serves two goals.
-
-First, it makes hardware usable. A server does not need to know the electrical protocol of a network adapter. It writes bytes through a socket interface, and the operating system plus device driver handle lower layers.
-
-Second, it protects the system. One process should not be able to overwrite another process's memory or control a device without permission.
-
-## The OS is not executing every instruction for the program
-
-Saying that the operating system sits between programs and hardware is useful, but it can become misleading if taken literally.
-
-Most ordinary application instructions run directly on the CPU in **user mode**. The operating system does not interpret each addition, comparison, or function call.
-
-The kernel becomes involved when protected coordination is required, including:
-
-- A process makes a **system call** to request an operating-system service
-- The CPU receives an interrupt from a device or timer
-- An instruction triggers a fault, such as accessing an unmapped memory page
-- The scheduler pauses one runnable thread and selects another
-
-So the more precise model is:
-
-> Application code runs directly within boundaries established by the operating system. It crosses into the kernel when it needs protected resources or system-wide coordination.
-
-## How this becomes a running server
-
-A server is not a special kind of program at rest. It becomes a server through what its process does after startup.
-
-A simplified sequence is:
-
-```text
-load program
-  → create process
-  → initialize runtime and application state
-  → ask the OS for a socket
-  → ask the OS to associate it with an address
-  → ask the OS to listen
-  → wait for and handle connections
-```
-
-The first three steps explain execution. The remaining steps introduce the communication path developed in later lessons.
-
-The process owns application-level state, such as routing rules or request handlers. The operating system owns protected mechanisms, such as scheduling, memory mappings, socket state, and network buffers. A framework can hide many calls, but it cannot remove this boundary.
-
-## A small observation exercise
-
-Python includes a simple HTTP server that is useful for observing a process. It is for local learning, not production use.
-
-Start it in one terminal:
+Open a second terminal. Replace `4172` in this command with the PID your server printed.
 
 ```bash
-python3 -m http.server 8000
+ps -p 4172 -o pid,ppid,stat,command
 ```
 
-In another terminal, find the process:
+Look for your PID and `server.py` in the same row. `PPID` identifies the parent process, usually the shell that launched Python. The state in `STAT` will typically include `S` for sleeping. The interpreter reached the next read on standard input. Until input arrives, the kernel can leave that thread asleep and schedule other work. Go back to the first terminal and send another `PING`. The waiting thread can now run and produce another `PONG`.
 
-```bash
-pgrep -af "python3 -m http.server 8000"
-```
+There are two different lifetimes here. The code in `server.py` stays on disk. Running `python3 server.py` starts a **process** in which the interpreter executes those instructions. Start a second copy while the first is waiting and the two copies will have different PIDs. Each has its own memory and its own place in the loop.
 
-Use the PID from that output to inspect its managed state:
+The split also explains where the operating system fits. The CPU runs the interpreter’s instructions in user mode as Python compares the request with `"PING"`. When it needs more input, the interpreter can ask the kernel to read through a **file descriptor**, a small number that identifies an open resource in that process. For a program launched in this terminal, descriptor 0 reads from the terminal. In the next lesson the same descriptor will read from a pipe.
 
-```bash
-ps -o pid,ppid,stat,comm,args -p <PID>
-ls -l /proc/<PID>/fd
-```
+## Finish the session
 
-On Linux, `/proc/<PID>/fd` exposes links representing the process's open file descriptors. You will normally see standard input, output, error, and a socket. The program asked for the socket, but the kernel maintains the underlying resource.
+In the terminal running the server, press Ctrl+D on an empty line. This lets the read return end-of-file. The loop ends, Python exits, and the shell prompt comes back. If you started a second copy, finish it the same way.
 
-Stop the server with `Ctrl+C`. That signal reaches the process, the runtime exits, and the operating system reclaims its resources.
+Repeat the `ps` command for the first PID. Its row should be gone. The operating system has reclaimed the process’s memory and closed its descriptors, and the file on disk is ready to run again.
 
-## Three distinctions to keep
-
-1. **Program vs. process:** stored instructions are not the same as a live execution instance.
-2. **User space vs. kernel space:** application instructions usually run directly, while protected operations cross into the kernel.
-3. **Application state vs. operating-system state:** the server controls its own logic, while the operating system controls shared resources and isolation.
-
-These distinctions prevent a common mistake: imagining that a framework, runtime, process, operating system, and CPU are one undivided machine. They are cooperating layers with different responsibilities.
-
-## Next: why processes need communication paths
-
-Process isolation is valuable because it limits accidental and unauthorized interference. Isolation also creates the next problem: separate processes cannot simply reach into one another's memory whenever they want.
-
-The next lesson introduces inter-process communication, the controlled mechanisms that allow isolated processes to exchange information.
+Keep `server.py`. In the next lesson, a second Python program will send `PING` through a pipe and read `PONG` back. What changes is who supplies the next line. The request handler you just wrote can stay exactly as it is.
 
 ## Sources
 
-- Linux manual page for [`execve(2)`](https://man7.org/linux/man-pages/man2/execve.2.html)
-- Linux manual overview of [`proc(5)`](https://man7.org/linux/man-pages/man5/proc.5.html)
-- Linux manual overview of [`sched(7)`](https://man7.org/linux/man-pages/man7/sched.7.html)
-- *Operating Systems: Three Easy Pieces*, [Processes chapter](https://pages.cs.wisc.edu/~remzi/OSTEP/cpu-intro.pdf)
+- Python documentation on [standard input, output and error](https://docs.python.org/3/library/sys.html#sys.stdin)
+- Linux manual on [reading from a file descriptor](https://man7.org/linux/man-pages/man2/read.2.html)
+- *Operating Systems: Three Easy Pieces*, [The Abstraction: The Process](https://pages.cs.wisc.edu/~remzi/OSTEP/cpu-intro.pdf)

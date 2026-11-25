@@ -9,7 +9,7 @@ const PUBLIC_DIR = path.join(ROOT, 'public');
 
 function parseFrontmatter(content) {
   const match = content.match(/^---\n([\s\S]*?)\n---/);
-  if (!match) return { data: {}, body: content };
+  if (!match) return { data: {}, body: content, hasFrontmatter: false };
   const raw = match[1];
   const body = content.slice(match[0].length).trim();
   const data = {};
@@ -42,7 +42,7 @@ function parseFrontmatter(content) {
       currentKey = key;
     }
   }
-  return { data, body };
+  return { data, body, hasFrontmatter: true };
 }
 
 function walkMd(dir) {
@@ -63,7 +63,8 @@ const posts = [];
 
 for (const file of files) {
   const content = fs.readFileSync(file, 'utf-8');
-  const { data, body } = parseFrontmatter(content);
+  const { data, body, hasFrontmatter } = parseFrontmatter(content);
+  if (!hasFrontmatter) continue;
   // Only English, non-draft, non-research-notes
   if (data.draft === true) continue;
   if (data.locale && data.locale !== 'en') continue;
