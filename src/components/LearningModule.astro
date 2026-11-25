@@ -1,0 +1,180 @@
+---
+import type { LearningModule } from '../data/learning-modules';
+import type { Locale } from '../utils/i18n';
+
+interface Props {
+  module: LearningModule;
+  currentLesson: number;
+  locale: Locale;
+  lessonHrefs: ReadonlyMap<number, string>;
+}
+
+const { module, currentLesson, locale, lessonHrefs } = Astro.props;
+const count = module.lessons.length;
+const copy = locale === 'es'
+  ? {
+      position: `Lección ${currentLesson} de ${count}`,
+      map: `Ver las ${count} lecciones`,
+      current: 'Estás aquí',
+      planned: 'Pendiente',
+      previous: 'Lección anterior',
+      next: 'Siguiente lección',
+    }
+  : {
+      position: `Lesson ${currentLesson} of ${count}`,
+      map: `See all ${count} lessons`,
+      current: 'You are here',
+      planned: 'Planned',
+      previous: 'Previous lesson',
+      next: 'Next lesson',
+    };
+const moduleId = `module-${module.id}`;
+---
+
+<nav id={moduleId} class="module-shell" aria-labelledby={`${moduleId}-title`} data-learning-module>
+  <p class="module-position">{copy.position}</p>
+  <h2 id={`${moduleId}-title`}>{module.title[locale]}</h2>
+  <p class="module-description">{module.description[locale]}</p>
+
+  <div class="module-neighbors">
+    {[currentLesson - 1, currentLesson + 1].map((number) => {
+      const lesson = module.lessons[number - 1];
+      if (!lesson) return null;
+
+      const previous = number < currentLesson;
+      const href = lessonHrefs.get(number);
+      const title = `${number}. ${lesson.title[locale]}`;
+      return (
+        <p>
+          <span class="neighbor-label">
+            {previous ? copy.previous : copy.next}{!href && ` · ${copy.planned}`}
+          </span>
+          {href ? <a href={href} rel={previous ? 'prev' : 'next'}>{title}</a> : <strong>{title}</strong>}
+        </p>
+      );
+    })}
+  </div>
+
+  <details class="module-map">
+    <summary>{copy.map}</summary>
+    <ol class="lesson-list">
+      {module.lessons.map((lesson, index) => {
+        const number = index + 1;
+        const current = number === currentLesson;
+        const href = lessonHrefs.get(number);
+        return (
+          <li aria-current={current ? 'step' : undefined}>
+            {href && !current ? <a href={href}>{lesson.title[locale]}</a> : <strong>{lesson.title[locale]}</strong>}
+            {current || !href ? <span class="lesson-state">{current ? copy.current : copy.planned}</span> : null}
+            <p>{lesson.description[locale]}</p>
+          </li>
+        );
+      })}
+    </ol>
+  </details>
+</nav>
+
+<style>
+  .module-shell {
+    margin: 2.25rem 0 0;
+    padding: clamp(1.1rem, 3vw, 1.75rem);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface-card);
+    scroll-margin-top: 5rem;
+  }
+
+  .module-position,
+  .neighbor-label,
+  .lesson-state {
+    font-family: var(--font-code);
+    font-size: 0.78rem;
+  }
+
+  .module-position {
+    margin: 0 0 0.4rem;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: clamp(1.35rem, 3vw, 1.8rem);
+    line-height: 1.2;
+  }
+
+  .module-description {
+    margin: 0.5rem 0 1rem;
+    max-width: 63ch;
+    color: var(--text-muted);
+  }
+
+  .module-neighbors {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    gap: 0.75rem 1.5rem;
+    padding: 1rem 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .module-neighbors p {
+    margin: 0;
+  }
+
+  .neighbor-label {
+    display: block;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+  }
+
+  a {
+    color: var(--accent);
+    font-weight: 650;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  summary {
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--border);
+    cursor: pointer;
+    font-weight: 650;
+  }
+
+  .lesson-list {
+    margin: 0;
+    padding-inline-start: 2.1rem;
+    list-style: decimal-leading-zero;
+  }
+
+  .lesson-list li {
+    padding: 0.7rem 0.4rem;
+  }
+
+  .lesson-list li + li {
+    border-top: 1px solid var(--border);
+  }
+
+  .lesson-list li::marker {
+    font-family: var(--font-code);
+    color: var(--text-muted);
+  }
+
+  .lesson-list li[aria-current='step']::marker {
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .lesson-list p {
+    margin: 0.2rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+
+  .lesson-state {
+    display: inline-block;
+    margin-inline-start: 0.5rem;
+    color: var(--text-muted);
+  }
+</style>

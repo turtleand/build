@@ -1,8 +1,10 @@
 ---
-import { render } from "astro:content";
+import { getCollection, render } from "astro:content";
+import LearningModule from "../components/LearningModule.astro";
+import { getLearningModule } from "../data/learning-modules";
 import BlogLayout from "../layouts/BlogLayout.astro";
 import type { PostEntry } from "../utils/blog";
-import { formatDate, getPostSlug, getTagSlug } from "../utils/blog";
+import { excludeResearchNotes, filterPublished, formatDate, getPostSlug, getTagSlug } from "../utils/blog";
 import type { Locale } from "../utils/i18n";
 import { getDictionary, otherLocale } from "../utils/i18n";
 
@@ -91,6 +93,25 @@ const researchNotesCopy = {
 	openLabel: dictionary.postPage.researchNotes?.openLabel ?? "Open Research Notes",
 	collapseLabel: dictionary.postPage.researchNotes?.collapseLabel ?? "Collapse Research Notes",
 };
+const learningModuleReference = post.data.isResearchNotes ? undefined : post.data.learningModule;
+const learningModule = learningModuleReference
+	? getLearningModule(learningModuleReference.id)
+	: undefined;
+const learningModuleLesson = learningModuleReference?.lesson;
+const lessonHrefs = new Map<number, string>();
+if (learningModule) {
+	const articles = await getCollection("posts", (entry) =>
+		entry.data.locale === locale && filterPublished(entry) && excludeResearchNotes(entry)
+	);
+	for (const article of articles) {
+		const reference = article.data.learningModule;
+		if (reference?.id !== learningModule.id) continue;
+		if (lessonHrefs.has(reference.lesson)) {
+			throw new Error(`Duplicate lesson ${reference.lesson} for ${reference.id} (${locale}): ${article.id}`);
+		}
+		lessonHrefs.set(reference.lesson, buildHref(`/blog/${getPostSlug(article)}/`));
+	}
+}
 const articleKicker = locale === "es" ? "Nota Build" : "Build note";
 const articleProtocolLabel = locale === "es" ? "Forma de lectura" : "Reading frame";
 const articleProtocolSteps = locale === "es"
@@ -174,7 +195,14 @@ document.addEventListener('DOMContentLoaded', () => {
 			"datePublished": post.data.date instanceof Date ? post.data.date.toISOString() : post.data.date,
 			"author": { "@type": "Person", "name": "Turtleand", "url": "https://turtleand.com" },
 			"publisher": { "@type": "Person", "name": "Turtleand", "url": "https://turtleand.com" },
-			"mainEntityOfPage": canonical || `https://build.turtleand.com/blog/${getPostSlug(post)}/`
+			"mainEntityOfPage": canonical || `https://build.turtleand.com/blog/${getPostSlug(post)}/`,
+			...(learningModule && learningModuleLesson ? {
+				"isPartOf": {
+					"@type": "CreativeWorkSeries",
+					"name": learningModule.title[locale],
+				},
+				"position": learningModuleLesson,
+			} : {})
 		})} />
 	</Fragment>
 	{hasTimeline && <script is:inline set:html={timelineToggleScript} />}
@@ -231,26 +259,34 @@ document.addEventListener('DOMContentLoaded', () => {
 					</div>
 				)
 			}
-			<article class="post">
+			<article class:list={["post", { "has-learning-module": Boolean(learningModule) }]}>
 				<header class="post-hero">
 					<p class="back-link">
 						<a href={basePath || "/"}>← {dictionary.postPage.backLabel}</a>
 					</p>
-					<p class="post-kicker">{articleKicker}</p>
+					<p class="post-kicker">
+						{learningModule ? (
+							<a href={`#module-${learningModule.id}`}>
+								{learningModule.title[locale]} · {locale === "es"
+									? `Parte ${learningModuleLesson} de ${learningModule.lessons.length}`
+									: `Part ${learningModuleLesson} of ${learningModule.lessons.length}`}
+							</a>
+						) : articleKicker}
+					</p>
 					<h1>{post.data.title}</h1>
 					<p class="post-summary">{post.data.description}</p>
 					<div class="meta-strip">
 						<p class="meta">
 							{dictionary.postPage.publishedOn}: {formatDate(post.data.date, locale)}
 						</p>
-						<div class="article-protocol" aria-label={articleProtocolLabel}>
+						{!learningModule && <div class="article-protocol" aria-label={articleProtocolLabel}>
 							{articleProtocolSteps.map((step, index) => (
 								<>
 									<span>{step}</span>
 									{index < articleProtocolSteps.length - 1 && <span class="protocol-separator" aria-hidden="true">/</span>}
 								</>
 							))}
-						</div>
+						</div>}
 					</div>
 					{
 						post.data.tags.length > 0 && (
@@ -268,6 +304,16 @@ document.addEventListener('DOMContentLoaded', () => {
 					<div class="content">
 						<Content />
 					</div>
+					{
+						learningModule && learningModuleLesson && (
+							<LearningModule
+								module={learningModule}
+								currentLesson={learningModuleLesson}
+								locale={locale}
+								lessonHrefs={lessonHrefs}
+							/>
+						)
+					}
 					{
 						showResearchNotesInline && researchNotesHref && ResearchNotesContent && (
 							<section class="research-notes-shell" id={researchNotesSectionId} data-research-notes-section>
@@ -389,6 +435,16 @@ document.addEventListener('DOMContentLoaded', () => {
 		letter-spacing: -0.045em;
 		line-height: 0.98;
 		max-width: 13ch;
+	}
+
+	.post-kicker a {
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+	}
+
+	.post.has-learning-module h1 {
+		max-width: 18ch;
+		font-size: clamp(2.05rem, 5vw, 3.7rem);
 	}
 
 	.post-summary {

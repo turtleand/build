@@ -29,8 +29,7 @@ test.describe('Home page', () => {
 		await firstCard.click();
 		await expect(page).toHaveURL(/\/blog\//);
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText(postTitle);
-		await expect(page.getByText('Build note')).toBeVisible();
-		await expect(page.getByLabel('Reading frame')).toContainText('Context');
+		await expect(page.locator('.post-kicker')).toBeVisible();
 
 		const postTagLink = page.locator('.tags a').first();
 		const tagLabel = (await postTagLink.textContent())?.trim() ?? '';

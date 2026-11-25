@@ -34,3 +34,15 @@ src/content/posts/
    - If you want the snippet watcher (`scripts/snippet-sync.mjs`) to cover the article, update the script’s `ARTICLE_PATH` to your article folder before running `npm run snippets:sync`.
 
 Following these steps keeps the main article, Research Notes, and supporting code grouped in one location while avoiding `.gitignore` conflicts (the old `misc/` folder name was ignored). Whenever you need another article with attached notes, repeat the same pattern.
+
+## Publishing the next web server lesson
+
+The ordered English and Spanish lesson outlines live in `src/data/learning-modules.ts`. To publish part 2, add the article using the usual post frontmatter and include this block in each available translation.
+
+```yaml
+learningModule:
+  id: programs-to-http
+  lesson: 2
+```
+
+Use the same lesson number and translation key in both languages. The roadmap and previous/next links use each published post’s own slug. Until a lesson is published in the reader’s language, its outline stays visible as a planned step.
